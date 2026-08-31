@@ -13,32 +13,56 @@
 </head>
 <body>
 
-    <!-- ================= HEADER ================= -->
+    <!-- ================= APP CHROME: TALMA + FLUENT ================= -->
     <div class="tdc-topline"></div>
-    <div class="tdc-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-3">
-            <div class="tdc-brandmark">TDC</div>
-            <div>
+    <aside class="tdc-header" aria-label="Navegación principal">
+        <div class="tdc-brand-area">
+            <div class="tdc-brandmark" aria-hidden="true">T</div>
+            <div class="tdc-brand-copy">
                 <h1 class="tdc-title">Talma Data Center</h1>
-                <p class="tdc-subtitle">Gestión y análisis de información</p>
+                <p class="tdc-subtitle">Mercancías peligrosas</p>
             </div>
         </div>
+
+        <div class="tdc-product-label">GESTIÓN DE CAPACITACIÓN</div>
+
         <div class="tdc-nav-wrap">
-            <nav class="tdc-nav d-flex">
-                <a href="#inicio" data-nav="inicio"><i class="fa-solid fa-house me-1"></i> <span class="nav-label">Inicio</span></a>
-                <a href="#asistencias" data-nav="asistencias"><i class="fa-solid fa-table-list me-1"></i> <span class="nav-label">Asistencias</span></a>
-                <a href="#colaboradores" data-nav="colaboradores"><i class="fa-solid fa-users me-1"></i> <span class="nav-label">Colaboradores</span></a>
-                <a href="#cursos" data-nav="cursos"><i class="fa-solid fa-book-open me-1"></i> <span class="nav-label">Cursos</span></a>
-                <a href="#grupos" data-nav="grupos"><i class="fa-solid fa-people-group me-1"></i> <span class="nav-label">Grupos</span></a>
-                <a href="#analitica" data-nav="analitica"><i class="fa-solid fa-chart-line me-1"></i> <span class="nav-label">Analítica</span></a>
+            <nav class="tdc-nav">
+                <a href="#inicio" data-nav="inicio"><i class="fa-solid fa-chart-pie"></i><span class="nav-label">Resumen</span></a>
+                <a href="#asistencias" data-nav="asistencias"><i class="fa-solid fa-table-list"></i><span class="nav-label">Registros</span></a>
+                <a href="#colaboradores" data-nav="colaboradores"><i class="fa-solid fa-user-group"></i><span class="nav-label">Personas</span></a>
+                <div class="tdc-nav-caption">Explorar</div>
+                <a href="#cursos" data-nav="cursos"><i class="fa-solid fa-book-open"></i><span class="nav-label">Cursos</span></a>
+                <a href="#grupos" data-nav="grupos"><i class="fa-solid fa-people-group"></i><span class="nav-label">Grupos</span></a>
+                <a href="#analitica" data-nav="analitica"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Tendencias</span></a>
             </nav>
+        </div>
+
+        <div class="tdc-sidebar-footer">
+            <div class="tdc-cloud-status">
+                <span class="status-dot status-loading"></span>
+                <span>Firebase · sincronización en línea</span>
+            </div>
             <button type="button" class="tdc-theme-toggle" id="themeToggleBtn" title="Cambiar tema" aria-label="Cambiar entre modo claro y oscuro">
-                <i class="fa-solid fa-moon"></i>
+                <i class="fa-solid fa-moon"></i><span>Tema</span>
             </button>
         </div>
-    </div>
+    </aside>
 
-    <div class="container-fluid px-4 mt-4">
+    <header class="tdc-commandbar">
+        <div>
+            <div class="tdc-command-eyebrow">Talma Colombia</div>
+            <div class="tdc-command-title">Control de formación y asistencia</div>
+        </div>
+        <div class="tdc-command-actions">
+            <span class="tdc-command-chip"><i class="fa-solid fa-shield-halved"></i> Datos operativos</span>
+            <button class="btn btn-sm btn-navy" onclick="actualizarDatos()" type="button">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Sincronizar
+            </button>
+        </div>
+    </header>
+
+    <main class="container-fluid px-4 mt-4 tdc-main">
 
         <!-- ================= FILTROS COMPARTIDOS ================= -->
         <div class="filter-panel">
@@ -49,23 +73,122 @@
             <div id="filtroBarContainer"></div>
         </div>
 
-        <!-- ================= VISTA: INICIO ================= -->
+        <!-- ================= VISTA: INICIO (Dashboard) ================= -->
         <section id="view-inicio" class="tdc-view">
+            <div class="dash-hero mb-3">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-7">
+                        <div class="dash-hero-title">Resumen de capacitación</div>
+                        <div class="dash-hero-sub" id="dashHeroSub">Estado general de asistencia, vigencias, alertas y calidad de datos.</div>
+                    </div>
+                    <div class="col-md-5 d-flex flex-wrap align-items-center gap-2 justify-content-md-end">
+                        <div class="dash-update text-md-end me-2">
+                            <div class="dash-update-label" id="dashUpdateLabel">Última actualización</div>
+                            <div class="dash-update-value" id="dashUpdateValue">—</div>
+                        </div>
+                        <button class="btn btn-navy btn-sm" id="btnActualizarDatosDash" onclick="actualizarDatos()">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i> Actualizar datos
+                        </button>
+                    </div>
+                </div>
+                <div id="dashCalidad" class="dash-calidad mt-3"></div>
+            </div>
+
+            <!-- PRIMERA SECCIÓN: INDICADORES PRINCIPALES -->
+            <div class="dash-section-title"><span class="hz-diamond bg-navy"><i class="fa-solid fa-gauge-high" style="color:#fff"></i></span>Indicadores clave</div>
             <div id="dashKpis" class="kpi-strip mb-3"></div>
-            <div class="card card-custom p-3">
-                <div class="section-title mb-2"><span class="hz-diamond bg-teal"><i class="fa-solid fa-bolt" style="color:#fff"></i></span>Resumen rápido</div>
-                <div id="dashResumenRapido" class="small" style="color:var(--ink-600);"></div>
-                <div class="mt-3 d-flex flex-wrap gap-2">
-                    <a class="btn btn-sm btn-outline-navy" href="#asistencias"><i class="fa-solid fa-table-list me-1"></i>Ir a asistencias</a>
-                    <a class="btn btn-sm btn-outline-navy" href="#colaboradores"><i class="fa-solid fa-users me-1"></i>Ir a colaboradores</a>
-                    <a class="btn btn-sm btn-outline-navy" href="#grupos"><i class="fa-solid fa-people-group me-1"></i>Ir a grupos</a>
-                    <a class="btn btn-sm btn-outline-navy" href="#analitica"><i class="fa-solid fa-chart-line me-1"></i>Ir a analítica</a>
+
+            <div class="row g-3 mb-3">
+                <!-- SEGUNDA SECCIÓN: ASISTENCIA GENERAL -->
+                <div class="col-lg-4">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-user-check me-2" style="color:var(--dg-green)"></i>Asistencia general</div>
+                        <div class="dash-dona-wrap">
+                            <canvas id="dashChartAsistencia"></canvas>
+                        </div>
+                        <div class="dash-dona-leyenda text-center" id="dashDonaLeyenda"></div>
+                    </div>
+                </div>
+                <!-- TERCERA SECCIÓN: ESTADO DE CAPACITACIÓN -->
+                <div class="col-lg-8">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-shield-halved me-2" style="color:var(--dg-teal)"></i>Estado de capacitación</div>
+                        <div id="dashEstadosResumen" class="estados-resumen"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- ASISTENCIA POR BASE -->
+                <div class="col-lg-6">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-location-dot me-2" style="color:var(--dg-teal)"></i>Asistencia por base</div>
+                        <div class="chart-box"><canvas id="dashChartPorBase"></canvas></div>
+                    </div>
+                </div>
+                <!-- ASISTENCIA POR CURSO -->
+                <div class="col-lg-6">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-book-open me-2" style="color:var(--navy-800)"></i>Asistencia por curso</div>
+                        <div class="chart-box"><canvas id="dashChartPorCurso"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- ASISTENCIA POR GRUPO -->
+                <div class="col-lg-7">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-people-group me-2" style="color:var(--dg-orange)"></i>Asistencia por grupo</div>
+                        <div class="table-responsive" style="max-height:340px;">
+                            <table class="table table-hover border align-middle mb-0 dash-table">
+                                <thead class="table-dark-custom">
+                                    <tr><th>Grupo</th><th>TOTAL</th><th>ASISTIERON</th><th>NO ASISTIERON</th><th>%</th></tr>
+                                </thead>
+                                <tbody id="dashGruposBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- BASES CON MAYOR INASISTENCIA + NO ASISTIERON -->
+                <div class="col-lg-5">
+                    <div class="card card-custom p-3 mb-3">
+                        <div class="dash-card-title"><i class="fa-solid fa-triangle-exclamation me-2" style="color:var(--dg-red)"></i>Puntos de atención</div>
+                        <div id="dashAlertas" class="alertas-list"></div>
+                    </div>
+                    <div class="card card-custom p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="dash-card-title mb-0"><i class="fa-solid fa-user-xmark me-2" style="color:var(--dg-red)"></i>No asistieron</div>
+                            <button class="btn btn-sm btn-outline-navy py-0 px-2" type="button" onclick="irANoAsistieron()">Ver todos</button>
+                        </div>
+                        <div id="dashNoAsistieron" class="no-asistieron-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- ÚLTIMOS REGISTROS -->
+                <div class="col-lg-7">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-clock-rotate-left me-2" style="color:var(--navy-800)"></i>Últimos registros</div>
+                        <div id="dashUltimos" class="ultimos-list"></div>
+                    </div>
+                </div>
+                <!-- ALERTAS DE CALIDAD DE DATOS -->
+                <div class="col-lg-5">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="dash-card-title"><i class="fa-solid fa-database me-2" style="color:var(--dg-yellow)"></i>Calidad de datos</div>
+                        <div id="dashCalidadDetalle" class="calidad-detalle"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- ================= VISTA: ASISTENCIAS ================= -->
         <section id="view-asistencias" class="tdc-view">
+            <div class="view-heading">
+                <div><span class="view-kicker">Operación</span><h2>Registros de asistencia</h2><p>Consulta, corrige, carga y exporta la información almacenada en Firebase.</p></div>
+            </div>
 
             <!-- PANEL DE ESTADO / ACCIONES -->
             <div class="card card-custom p-3">
@@ -162,17 +285,20 @@
 
         <!-- ================= VISTA: COLABORADORES ================= -->
         <section id="view-colaboradores" class="tdc-view">
+            <div class="view-heading">
+                <div><span class="view-kicker">Personas</span><h2>Colaboradores</h2><p>Historial consolidado por persona, estado y participación en capacitación.</p></div>
+            </div>
             <div id="colabKpis" class="kpi-strip mb-3"></div>
             <div class="card card-custom p-3">
                 <div class="table-responsive" style="max-height:60vh;">
                     <table class="table table-hover border align-middle mb-0">
                         <thead class="table-dark-custom">
                             <tr>
-                                <th>Nombre</th><th>ID</th><th>Cargo</th><th>Base</th><th>Correo</th><th>Cursos</th><th>Asist. / Inasist.</th><th>Último curso</th>
+                                <th>Nombre</th><th>ID</th><th>Cargo</th><th>Base</th><th>Correo</th><th>Cursos</th><th>Asist. / Inasist.</th><th>Estado</th><th>Último curso</th>
                             </tr>
                         </thead>
                         <tbody id="colaboradoresTbody">
-                            <tr><td colspan="8" class="text-center py-4 text-muted tdc-loading-row"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando...</td></tr>
+                            <tr><td colspan="9" class="text-center py-4 text-muted tdc-loading-row"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -181,6 +307,9 @@
 
         <!-- ================= VISTA: CURSOS ================= -->
         <section id="view-cursos" class="tdc-view">
+            <div class="view-heading">
+                <div><span class="view-kicker">Explorar</span><h2>Cursos</h2><p>Vista consolidada por curso sin repetir los indicadores generales del dashboard.</p></div>
+            </div>
             <div class="card card-custom p-3">
                 <div class="table-responsive" style="max-height:60vh;">
                     <table class="table table-hover border align-middle mb-0">
@@ -199,6 +328,9 @@
 
         <!-- ================= VISTA: GRUPOS ================= -->
         <section id="view-grupos" class="tdc-view">
+            <div class="view-heading">
+                <div><span class="view-kicker">Explorar</span><h2>Grupos</h2><p>Seguimiento operativo por grupo, fecha, instructor y nivel de asistencia.</p></div>
+            </div>
             <div class="card card-custom p-3">
                 <div class="table-responsive" style="max-height:60vh;">
                     <table class="table table-hover border align-middle mb-0">
@@ -219,63 +351,44 @@
         <section id="view-grupo" class="tdc-view"><div id="grupoDetalleContent"></div></section>
         <section id="view-curso" class="tdc-view"><div id="cursoDetalleContent"></div></section>
 
-        <!-- ================= VISTA: ANALÍTICA ================= -->
+        <!-- ================= VISTA: TENDENCIAS ================= -->
         <section id="view-analitica" class="tdc-view">
-            <div id="analiticaKpis" class="kpi-strip mb-3"></div>
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <div class="card card-custom p-3 h-100">
-                        <div class="section-title">Asistieron vs no asistieron</div>
-                        <div class="chart-box"><canvas id="chartAsistencia"></canvas></div>
-                    </div>
+            <div class="view-heading">
+                <div>
+                    <span class="view-kicker">Análisis</span>
+                    <h2>Tendencias y desempeño</h2>
+                    <p>Esta vista conserva únicamente análisis longitudinales y de desempeño que no se repiten en el Resumen.</p>
                 </div>
-                <div class="col-lg-8 mb-4">
-                    <div class="card card-custom p-3 h-100">
-                        <div class="section-title">Asistencia por base</div>
-                        <div class="chart-box"><canvas id="chartPorBase"></canvas></div>
-                    </div>
+            </div>
+
+            <div class="analytics-focus-grid">
+                <div class="card card-custom p-3 analytics-wide">
+                    <div class="section-title">Evolución del porcentaje de asistencia</div>
+                    <p class="card-helper">Permite detectar cambios de comportamiento a lo largo de las fechas de formación.</p>
+                    <div class="chart-box chart-box-lg"><canvas id="chartEvolucion"></canvas></div>
                 </div>
-                <div class="col-lg-6 mb-4">
-                    <div class="card card-custom p-3 h-100">
-                        <div class="section-title">Asistencia por grupo</div>
-                        <div class="chart-box"><canvas id="chartPorGrupo"></canvas></div>
-                    </div>
+
+                <div class="card card-custom p-3">
+                    <div class="section-title">Distribución de notas</div>
+                    <p class="card-helper">Concentración de resultados académicos dentro del universo filtrado.</p>
+                    <div class="chart-box"><canvas id="chartNotas"></canvas></div>
                 </div>
-                <div class="col-lg-6 mb-4">
-                    <div class="card card-custom p-3 h-100">
-                        <div class="section-title">Asistencia por curso</div>
-                        <div class="chart-box"><canvas id="chartPorCurso"></canvas></div>
-                    </div>
+
+                <div class="card card-custom p-3">
+                    <div class="section-title">Asistencia por instructor</div>
+                    <p class="card-helper">Comparación de asistentes e inasistentes por instructor.</p>
+                    <div class="chart-box"><canvas id="chartPorInstructor"></canvas></div>
                 </div>
-                <div class="col-lg-12 mb-4">
-                    <div class="card card-custom p-3">
-                        <div class="section-title">Evolución de asistencia por fecha</div>
-                        <div class="chart-box"><canvas id="chartEvolucion"></canvas></div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mb-4">
-                    <div class="card card-custom p-3 h-100">
-                        <div class="section-title">Distribución de notas</div>
-                        <div class="chart-box"><canvas id="chartNotas"></canvas></div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mb-4">
-                    <div class="card card-custom p-3 h-100">
-                        <div class="section-title">Asistencia por instructor</div>
-                        <div class="chart-box"><canvas id="chartPorInstructor"></canvas></div>
-                    </div>
-                </div>
-                <div class="col-lg-12 mb-4">
-                    <div class="card card-custom p-3">
-                        <div class="section-title">Horas de capacitación ejecutadas por periodo semestral</div>
-                        <div class="chart-box"><canvas id="chartHorasPeriodo"></canvas></div>
-                    </div>
+
+                <div class="card card-custom p-3 analytics-wide">
+                    <div class="section-title">Horas ejecutadas por semestre</div>
+                    <p class="card-helper">Evolución de la intensidad total ejecutada por periodo semestral.</p>
+                    <div class="chart-box chart-box-lg"><canvas id="chartHorasPeriodo"></canvas></div>
                 </div>
             </div>
         </section>
 
-    </div>
-
+    </main>
     <!-- ================= PERFIL DE COLABORADOR (overlay) ================= -->
     <div id="profileOverlay" class="profile-overlay">
         <div class="profile-panel">
@@ -342,7 +455,11 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small">Selecciona el archivo. Se validarán los datos y podrás revisar errores antes de subir nada a la nube.</p>
+                    <p class="text-muted small">
+                        El archivo se procesa como <strong>UPSERT inteligente</strong>: se normalizan cédulas,
+                        se buscan coincidencias por <strong>CÉDULA + CURSO</strong> y se muestra un resumen de
+                        <strong>nuevos / actualizarán / sin cambios / errores</strong> antes de tocar la base.
+                    </p>
                     <input type="file" id="excelFileInput" class="form-control mb-3" accept=".xlsx, .xls, .csv">
                     <div id="bulkStatus" class="text-muted small"></div>
                 </div>
@@ -354,33 +471,83 @@
         </div>
     </div>
 
-    <!-- ================= MODAL: REPORTE DE VALIDACIÓN ================= -->
+    <!-- ================= MODAL: PREVISUALIZACIÓN DE CARGA (VALIDAR → CONFIRMAR) ================= -->
     <div class="modal fade" id="modalValidacion" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--navy-900); color:white;">
-                    <h5 class="modal-title"><i class="fa-solid fa-list-check me-2"></i>Reporte de validación</h5>
+                    <h5 class="modal-title"><i class="fa-solid fa-list-check me-2"></i>Validación de carga</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row g-3 mb-3 text-center">
-                        <div class="col-4">
-                            <div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valTotal">0</div><div class="kpi-label">Total filas</div></div></div>
-                        </div>
-                        <div class="col-4">
-                            <div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valValidos" style="color:var(--dg-green)">0</div><div class="kpi-label">Válidas</div></div></div>
-                        </div>
-                        <div class="col-4">
-                            <div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valInvalidos" style="color:var(--dg-red)">0</div><div class="kpi-label">Con errores</div></div></div>
-                        </div>
+                    <p class="text-muted small mb-2" id="valComentario">
+                        Revisa la clasificación. Nada se modifica hasta que confirmes la carga.
+                    </p>
+                    <div class="row g-2 mb-3 text-center carga-summary-grid">
+                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valTotal">0</div><div class="kpi-label">En archivo</div></div></div></div>
+                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valNuevos" style="color:var(--dg-teal)">0</div><div class="kpi-label">Nuevos</div></div></div></div>
+                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valActualizar" style="color:var(--dg-orange)">0</div><div class="kpi-label">Actualizarán</div></div></div></div>
+                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valSinCambios" style="color:var(--ink-600)">0</div><div class="kpi-label">Sin cambios</div></div></div></div>
+                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valDuplicados" style="color:var(--dg-yellow)">0</div><div class="kpi-label">Duplicados detectados</div></div></div></div>
+                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valErrores" style="color:var(--dg-red)">0</div><div class="kpi-label">Con error</div></div></div></div>
                     </div>
-                    <div class="table-responsive" style="max-height: 40vh;">
-                        <table class="table table-sm">
-                            <thead class="table-dark-custom">
-                                <tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Motivo</th></tr>
-                            </thead>
-                            <tbody id="valTableBody"></tbody>
-                        </table>
+
+                    <ul class="nav nav-tabs preview-tabs mb-2" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#prevNuevos" type="button" role="tab">
+                                <i class="fa-solid fa-plus me-1"></i><span id="tabNuevos">Nuevos (0)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevActualizar" type="button" role="tab">
+                                <i class="fa-solid fa-arrows-rotate me-1"></i><span id="tabActualizar">Actualizarán (0)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevSinCambios" type="button" role="tab">
+                                <i class="fa-solid fa-check me-1"></i><span id="tabSinCambios">Sin cambios (0)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevErrores" type="button" role="tab">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i><span id="tabErrores">Errores (0)</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="prevNuevos" role="tabpanel">
+                            <div class="table-responsive" style="max-height:38vh;">
+                                <table class="table table-sm">
+                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
+                                    <tbody id="prevTableNuevos"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="prevActualizar" role="tabpanel">
+                            <div class="table-responsive" style="max-height:38vh;">
+                                <table class="table table-sm">
+                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
+                                    <tbody id="prevTableActualizar"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="prevSinCambios" role="tabpanel">
+                            <div class="table-responsive" style="max-height:38vh;">
+                                <table class="table table-sm">
+                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
+                                    <tbody id="prevTableSinCambios"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="prevErrores" role="tabpanel">
+                            <div class="table-responsive" style="max-height:38vh;">
+                                <table class="table table-sm">
+                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
+                                    <tbody id="prevTableErrores"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -388,13 +555,16 @@
                         <i class="fa-solid fa-file-arrow-down me-1"></i> Descargar errores
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" id="btnSubirValidos" class="btn btn-navy" onclick="confirmarSubidaValidos()">
-                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Subir registros válidos
+                    <button type="button" id="btnConfirmarSubida" class="btn btn-navy" onclick="confirmarSubidaValidos()">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Confirmar carga
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- ================= CONTENEDOR: RESULTADO DE CARGA MASIVA ================= -->
+    <div id="cargaResultado" class="container-fluid px-4"></div>
 
     <!-- ================= MODAL: EDICIÓN MASIVA ================= -->
     <div class="modal fade" id="modalEdicionMasiva" tabindex="-1">
