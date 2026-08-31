@@ -1,9 +1,9 @@
 // ==========================================================================
 // TALMA DATA CENTER — Vista CURSOS (+ detalle)
 // ==========================================================================
-import { agregarPorCurso } from "./agregados.js";
-import { escapeHtml, asistenciaPill, promedioFmt, percentFmt } from "./ui.js";
-import { formatFechaDisplay, uniqueSorted } from "./utils.js";
+import { agregarPorCurso } from "./agregados.js?v=2.2.0";
+import { escapeHtml, asistenciaPill, promedioFmt, percentFmt } from "./ui.js?v=2.2.0";
+import { formatFechaDisplay, uniqueSorted } from "./utils.js?v=2.2.0";
 
 export function renderCursos(s) {
   const cursos = agregarPorCurso(s.filtered);

@@ -2,14 +2,14 @@
 // TALMA DATA CENTER — Perfil de colaborador (overlay)
 // Ficha individual: resumen, información personal, historial y documentos.
 // ==========================================================================
-import { store } from "./store.js";
-import { agregarPorPersona } from "./agregados.js";
-import { escapeHtml, asistenciaPill, formatBytes, promedioFmt } from "./ui.js";
-import { formatFechaDisplay, showToast } from "./utils.js";
-import { estadosPorPersona, estadoDeRegistro, coloresEstadoCapacitacion, addMeses, diffDias, vigenciaMesesCurso } from "./capacitacion.js";
+import { store } from "./store.js?v=2.2.0";
+import { agregarPorPersona } from "./agregados.js?v=2.2.0";
+import { escapeHtml, asistenciaPill, formatBytes, promedioFmt } from "./ui.js?v=2.2.0";
+import { formatFechaDisplay, showToast } from "./utils.js?v=2.2.0";
+import { estadosPorPersona, estadoDeRegistro, coloresEstadoCapacitacion, addMeses, diffDias, vigenciaMesesCurso } from "./capacitacion.js?v=2.2.0";
 import {
   suscribirDocumentos, subirDocumento, eliminarDocumento, obtenerUrlDescarga,
-} from "./documentos.js";
+} from "./documentos.js?v=2.2.0";
 
 let currentPersonId = null;
 let unsubDocs = null;

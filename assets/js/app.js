@@ -4,16 +4,16 @@
 // orquesta el re-render de la vista activa cada vez que cambian los datos
 // o los filtros. Toda la app consume una única fuente: store.filtered.
 // ==========================================================================
-import { store } from "./store.js";
-import { defineRoute, initRouter, route, navigate } from "./router.js";
-import { initFiltros, setFiltroContexto } from "./filtros.js";
-import { initAsistencias, render as renderAsistencias } from "./asistencias.js";
-import { renderDashboard } from "./dashboard.js";
-import { renderColaboradores } from "./colaboradores.js";
-import { renderGrupos, renderGrupoDetalle } from "./grupos.js";
-import { renderCursos, renderCursoDetalle } from "./cursos.js";
-import { initPerfil, abrirPerfil, renderPerfil, cerrarPerfil } from "./perfil.js";
-import { escapeHtml } from "./ui.js";
+import { store } from "./store.js?v=2.2.0";
+import { defineRoute, initRouter, route, navigate } from "./router.js?v=2.2.0";
+import { initFiltros, setFiltroContexto } from "./filtros.js?v=2.2.0";
+import { initAsistencias, render as renderAsistencias } from "./asistencias.js?v=2.2.0";
+import { renderDashboard } from "./dashboard.js?v=2.2.0";
+import { renderColaboradores } from "./colaboradores.js?v=2.2.0";
+import { renderGrupos, renderGrupoDetalle } from "./grupos.js?v=2.2.0";
+import { renderCursos, renderCursoDetalle } from "./cursos.js?v=2.2.0";
+import { initPerfil, abrirPerfil, renderPerfil, cerrarPerfil } from "./perfil.js?v=2.2.0";
+import { escapeHtml } from "./ui.js?v=2.2.0";
 
 let currentRoute = { name: "inicio", param: "" };
 
@@ -43,13 +43,32 @@ function renderCurrent() {
 function renderChrome() {
   const total = document.getElementById("totalRecords");
   if (total) total.innerText = store.sizeCrudo;
+
   const ult = document.getElementById("lastUpdated");
   if (ult) ult.innerText = store.ultimaActualizacion ? `Actualizado: ${store.ultimaActualizacion}` : "";
   const topUlt = document.getElementById("topLastUpdated");
-  if (topUlt) topUlt.innerText = store.ultimaActualizacion ? `Actualizado ${store.ultimaActualizacion}` : "";
+  if (topUlt) topUlt.innerText = store.estado === "loading"
+    ? "Cargando datos…"
+    : (store.ultimaActualizacion ? `Actualizado ${store.ultimaActualizacion}` : "");
+
+  const btn = document.getElementById("btnTraerDatos");
+  if (btn) {
+    const loading = store.estado === "loading";
+    btn.disabled = loading;
+    btn.innerHTML = loading
+      ? '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Cargando…'
+      : '<i class="fa-solid fa-arrow-down-long me-1"></i> Traer datos';
+  }
 }
 
 window.navigate = navigate;
+
+window.traerDatos = async function () {
+  const r = await store.actualizar();
+  if (!r.ok) store.connect();
+};
+
+document.getElementById("btnTraerDatos")?.addEventListener("click", () => window.traerDatos());
 
 window.reintentarCarga = function () {
   store.connect();

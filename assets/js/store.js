@@ -4,10 +4,10 @@
 // (tabla, KPIs, gráficos, personas, grupos, cursos) consume EXACTAMENTE
 // el mismo arreglo filtrado, eliminando lógicas aisladas por widget.
 // ==========================================================================
-import { colRef, CAMPOS } from "./firebase-config.js";
-import { onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { normalizarRegistroFirestore, getSemestre, normKey, safeStr, normalizarAsistencia } from "./utils.js";
-import { estadoDeRegistro, normalizarCedula, clavePersonaCurso, hoyLocal } from "./capacitacion.js";
+import { colRef, CAMPOS } from "./firebase-config.js?v=2.2.0";
+import { onSnapshot, getDocs, getDocsFromServer } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { normalizarRegistroFirestore, getSemestre, normKey, safeStr, normalizarAsistencia } from "./utils.js?v=2.2.0";
+import { estadoDeRegistro, normalizarCedula, clavePersonaCurso, hoyLocal } from "./capacitacion.js?v=2.2.0";
 
 const listeners = new Set();
 
@@ -145,83 +145,108 @@ export const store = {
     store.notify();
   },
 
-  /* ---------------- Conexión a Firestore ---------------- */
-  iniciar() { store.connect(); },
+  /* ---------------- Conexión y primera carga ---------------- */
+  iniciar() {
+    // La vista no depende de un clic: se conecta en cuanto inicia app.js.
+    store.connect();
+    // Si el navegador recupera conectividad, intenta ponerse al día solo.
+    if (typeof window !== "undefined" && !store._onlineBound) {
+      store._onlineBound = true;
+      window.addEventListener("online", () => store.connect());
+    }
+  },
 
   _unsubscribe: null,
+  _fallbackTimer: null,
+  _directPromise: null,
+  _onlineBound: false,
+
+  async _cargaDirecta({ silenciosa = true } = {}) {
+    if (store._directPromise) return store._directPromise;
+    store._directPromise = (async () => {
+      try {
+        // Primero fuerza servidor; si la red lo impide, getDocs puede aprovechar cache SDK.
+        let snapshot;
+        try { snapshot = await getDocsFromServer(colRef); }
+        catch (serverErr) {
+          console.warn("[DATA] Consulta directa al servidor no disponible; intentando cache/red estándar.", serverErr);
+          snapshot = await getDocs(colRef);
+        }
+        store.procesarSnapshot(snapshot);
+        return { ok: true };
+      } catch (err) {
+        console.error("[DATA] No fue posible obtener registros:", err);
+        store.error = {
+          titulo: "No fue posible cargar los datos",
+          mensaje: err.message || String(err),
+          codigo: err.code || "—",
+          proceso: "consulta directa de capacitaciones",
+        };
+        if (!silenciosa || store.data.length === 0) {
+          store.setEstado("error");
+          store.notify();
+        }
+        return { ok: false };
+      } finally {
+        store._directPromise = null;
+      }
+    })();
+    return store._directPromise;
+  },
 
   connect() {
     store.setEstado("loading");
-    if (typeof store._unsubscribe === "function") store._unsubscribe();
-    store._unsubscribe = onSnapshot(colRef, (snapshot) => {
-      store.procesarSnapshot(snapshot);
-    }, (error) => {
-      console.error("[FIREBASE] Error de suscripción:", error);
-      store.error = {
-        titulo: "No fue posible cargar los datos",
-        mensaje: error.message || String(error),
-        codigo: error.code || "—",
-        proceso: "onSnapshot(capacitaciones)",
-      };
-      store.setEstado("error");
-      store.notify();
-    });
-  },
+    store.notify();
 
-  procesarSnapshot(snapshot) {
-    store.sizeCrudo = snapshot.size;
-    try {
-      const docs = snapshot.docs;
-      if (!Array.isArray(docs)) throw new Error("snapshot.docs no es un arreglo. Estructura inesperada.");
-      performance.mark?.("tdc-normalize-start");
-      store.data = docs.map(d => normalizarRegistroFirestore({ _docId: d.id, ...d.data() }, CAMPOS));
-      store.dataVersion++;
-      performance.mark?.("tdc-normalize-end");
-      try { performance.measure?.("tdc-normalization", "tdc-normalize-start", "tdc-normalize-end"); } catch {}
-      store.estadoHoy = hoyLocal();
-      // Reset de caches e índices derivados.
-      store.indiceBusqueda = null;
-      store._claves = null;
-      store._duplicados = [];
-      store._revision = [];
-      store._duplicadosSet = new Set();
-      store._revisionSet = new Set();
-      store.calcularIntegridad();
-      store.error = null;
-      store.ultimaActualizacion = new Date().toLocaleString("es-CO");
-      store.setEstado("online");
-      store.applyFilters();
-    } catch (err) {
-      console.error("[DATA] Error procesando registros:", err);
-      store.error = {
-        titulo: "Se pudo consultar el total, pero no fue posible obtener los registros",
-        mensaje: err.message || String(err),
-        codigo: "—",
-        proceso: "procesarSnapshot() / normalización de documentos",
-      };
-      store.setEstado("partial");
-      store.notify();
+    if (typeof store._unsubscribe === "function") {
+      try { store._unsubscribe(); } catch {}
+      store._unsubscribe = null;
     }
+    if (store._fallbackTimer) clearTimeout(store._fallbackTimer);
+
+    let recibioPrimerSnapshot = false;
+    try {
+      store._unsubscribe = onSnapshot(colRef, (snapshot) => {
+        recibioPrimerSnapshot = true;
+        if (store._fallbackTimer) clearTimeout(store._fallbackTimer);
+        store.procesarSnapshot(snapshot);
+      }, async (error) => {
+        console.warn("[DATA] La escucha en tiempo real falló; usando carga directa.", error);
+        if (store._fallbackTimer) clearTimeout(store._fallbackTimer);
+        const r = await store._cargaDirecta({ silenciosa: false });
+        if (!r.ok) {
+          store.error = {
+            titulo: "No fue posible cargar los datos",
+            mensaje: error.message || String(error),
+            codigo: error.code || "—",
+            proceso: "suscripción y consulta directa",
+          };
+          store.setEstado("error");
+          store.notify();
+        }
+      });
+    } catch (error) {
+      console.warn("[DATA] No se pudo iniciar escucha; usando carga directa.", error);
+      store._cargaDirecta({ silenciosa: false });
+      return;
+    }
+
+    // En algunas redes empresariales onSnapshot puede tardar sin lanzar error.
+    // A los 2.2 s hacemos una consulta directa de respaldo, sin cancelar la escucha.
+    store._fallbackTimer = setTimeout(() => {
+      if (!recibioPrimerSnapshot && store.data.length === 0) {
+        store._cargaDirecta({ silenciosa: true });
+      }
+    }, 2200);
   },
 
   async actualizar() {
-    try {
-      store.setEstado("loading");
-      store.notify();
-      const snapshot = await getDocs(colRef);
-      store.procesarSnapshot(snapshot);
-      return { ok: true };
-    } catch (err) {
-      store.error = {
-        titulo: "No fue posible cargar los datos",
-        mensaje: err.message || String(err),
-        codigo: err.code || "—",
-        proceso: "getDocs(capacitaciones)",
-      };
-      store.setEstado("error");
-      store.notify();
-      return { ok: false };
-    }
+    store.setEstado("loading");
+    store.notify();
+    const r = await store._cargaDirecta({ silenciosa: false });
+    // Mantiene/reinicia la escucha en tiempo real después de una consulta manual.
+    if (r.ok && !store._unsubscribe) store.connect();
+    return r;
   },
 
   setEstado(e) { store.estado = e; },

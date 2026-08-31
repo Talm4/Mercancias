@@ -4,7 +4,7 @@
 // la sincronización con los datos ya cargados en producción.
 // ==========================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4KlXPtSo-V4LqaBqc1HlRY3-KvK9RJDo",
@@ -17,7 +17,11 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+// Auto-detecta long polling cuando proxies/redes corporativas bloquean el canal normal.
+// Esto mejora la primera carga sin cambiar la colección ni los datos.
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+});
 export const colRef = collection(db, "capacitaciones");
 
 // Nombre oficial de las columnas tal como se guardan en Firestore.

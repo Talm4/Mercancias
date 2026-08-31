@@ -30,3 +30,29 @@ body{background:var(--v2-bg)!important;color:var(--v2-text)!important;font-famil
 .fb-clear{min-width:110px}
 @media(max-width:991px){.brand-logo-block{justify-content:center;padding-left:6px!important;padding-right:6px!important}.talma-logo{width:54px;object-fit:cover;object-position:left}}
 @media(max-width:720px){.talma-logo{width:92px;object-fit:contain}.brand-logo-block{min-height:auto;padding:4px 6px!important}}
+
+
+/* V2.2 — carga automática y logo contenido */
+.brand-logo-block{
+  width:100%; min-width:0; height:88px; min-height:88px;
+  overflow:hidden; box-sizing:border-box; padding:14px 14px 18px!important;
+  display:flex; align-items:center; justify-content:flex-start;
+}
+.talma-logo{
+  display:block!important; width:auto!important; height:auto!important;
+  max-width:170px!important; max-height:52px!important;
+  object-fit:contain!important; object-position:left center!important;
+  flex:0 0 auto;
+}
+.data-refresh-btn{white-space:nowrap;min-width:104px}
+.dashboard-loading{font-size:11px;color:var(--v2-muted)}
+.dashboard-load-error{font-size:11px;color:#a33a2b}
+@media(max-width:850px){
+  .brand-logo-block{height:70px;min-height:70px;padding:10px 8px!important;justify-content:center}
+  .talma-logo{max-width:54px!important;max-height:38px!important;object-fit:contain!important}
+}
+@media(max-width:560px){
+  .brand-logo-block{width:100px;height:42px;min-height:42px;padding:4px 6px!important;justify-content:flex-start}
+  .talma-logo{max-width:92px!important;max-height:32px!important}
+  .data-refresh-btn{min-width:auto}.data-refresh-btn{font-size:0!important}.data-refresh-btn i{font-size:12px!important;margin:0!important}
+}
