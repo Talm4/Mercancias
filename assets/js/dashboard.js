@@ -7,7 +7,7 @@ import { store } from "./store.js";
 import { resumen, agregarPorGrupo } from "./agregados.js";
 import { getAnalytics } from "./analytics-engine.js";
 import { renderKpiStrip, escapeHtml } from "./ui.js";
-import { asisteRegistro, formatFechaDisplay } from "./utils.js";
+import { formatFechaDisplay } from "./utils.js";
 import { estadosPorPersona } from "./capacitacion.js";
 
 const VERDE = "#0b7a40", ROJO = "#d92d2d", TEAL = "#1c6fa8", AMARILLO = "#b78e12";
@@ -42,7 +42,7 @@ function renderHero(s) {
   const updateLabel = document.getElementById("dashUpdateLabel");
   const updateValue = document.getElementById("dashUpdateValue");
   if (updateLabel) updateLabel.innerHTML =
-    s.ultimaActualizacion ? "Última actualización" : "Cargando datos";
+    s.ultimaActualizacion ? "Última actualización" : "Sin sincronizar";
   if (updateValue) updateValue.innerText = s.ultimaActualizacion || "—";
 
   const heroSub = document.getElementById("dashHeroSub");
@@ -105,7 +105,7 @@ function renderAsistenciaGeneral(data) {
   if (data.length === 0) { vaciar("dashChartAsistencia"); if (leyenda) leyenda.innerHTML = ""; return; }
 
   let si = 0, no = 0;
-  data.forEach(d => asisteRegistro(d) ? si++ : no++);
+  data.forEach(d => (d.ASISTIO || "SÍ").toUpperCase() === "NO" ? no++ : si++);
   const total = si + no;
   const pct = total ? Math.round((si / total) * 100) : 0;
 
@@ -237,7 +237,7 @@ function asistenciaPor(data, campo, canvasId, horizontal) {
   data.forEach(d => {
     const key = d[campo] || "SIN ASIGNAR";
     if (!map[key]) map[key] = { si: 0, no: 0 };
-    asisteRegistro(d) ? map[key].si++ : map[key].no++;
+    (d.ASISTIO || "SÍ").toUpperCase() === "NO" ? map[key].no++ : map[key].si++;
   });
   const labels = Object.keys(map).sort((a, b) => {
     const ta = map[a].si + map[a].no, tb = map[b].si + map[b].no;
@@ -314,7 +314,7 @@ function renderAlertas(data) {
     const b = d.BASE || "(Sin base)";
     if (!map[b]) map[b] = { no: 0, total: 0 };
     map[b].total++;
-    if (!asisteRegistro(d)) map[b].no++;
+    if ((d.ASISTIO || "SÍ").toUpperCase() === "NO") map[b].no++;
   });
   const orden = Object.entries(map)
     .filter(([, v]) => v.no > 0)
@@ -339,7 +339,7 @@ function renderAlertas(data) {
 function renderNoAsistieron(data) {
   const cont = document.getElementById("dashNoAsistieron");
   if (!cont) return;
-  const noAsist = data.filter(d => !asisteRegistro(d))
+  const noAsist = data.filter(d => (d.ASISTIO || "SÍ").toUpperCase() === "NO")
     .sort((a, b) => (b.FECHA || "").localeCompare(a.FECHA || ""))
     .slice(0, 6);
   if (noAsist.length === 0) {
@@ -366,7 +366,7 @@ function renderUltimos(data) {
     return;
   }
   cont.innerHTML = recientes.map(d => {
-    const esSi = asisteRegistro(d);
+    const esSi = (d.ASISTIO || "SÍ").toUpperCase() !== "NO";
     return `
       <div class="ultimo-item">
         <div class="ultimo-avatar"><i class="fa-solid fa-user"></i></div>
@@ -444,6 +444,7 @@ export function renderDashboard(s) {
   renderHero(s);
   renderKpis(s, r);
   renderAsistenciaGeneral(data);
+  renderEstados(s);
   renderGrupos(data);
   renderAlertas(data);
   renderNoAsistieron(data);

@@ -47,11 +47,10 @@ export function renderPerfil(s) {
   }
 
   const nombre = escapeHtml(persona.NOMBRES);
-  const totalAsistencia = persona.asistencias + persona.inasistencias;
   const res = {
+    cursos: persona.totalCursos,
     asist: persona.asistencias,
     inasist: persona.inasistencias,
-    pct: totalAsistencia ? Math.round((persona.asistencias / totalAsistencia) * 100) : 0,
     prom: persona.promedioNota,
   };
 
@@ -69,10 +68,11 @@ export function renderPerfil(s) {
       <div class="profile-section">
         <div class="section-title mb-2"><span class="hz-diamond bg-navy"><i class="fa-solid fa-chart-simple" style="color:#fff"></i></span>Resumen</div>
         <div class="profile-kpis">
+          <div class="kpi-card"><div><div class="kpi-value">${res.cursos}</div><div class="kpi-label">Cursos realizados</div></div></div>
           <div class="kpi-card"><div><div class="kpi-value" style="color:var(--dg-green)">${res.asist}</div><div class="kpi-label">Asistencias</div></div></div>
           <div class="kpi-card"><div><div class="kpi-value" style="color:var(--dg-red)">${res.inasist}</div><div class="kpi-label">Inasistencias</div></div></div>
-          <div class="kpi-card"><div><div class="kpi-value">${res.pct}%</div><div class="kpi-label">% asistencia</div></div></div>
           <div class="kpi-card"><div><div class="kpi-value">${promedioFmt(res.prom)}</div><div class="kpi-label">Promedio de nota</div></div></div>
+          <div class="kpi-card"><div><div class="kpi-value" style="font-size:0.8rem;">${escapeHtml(persona.ultimoCurso || "—")}</div><div class="kpi-label">Último curso</div></div></div>
         </div>
       </div>
 
@@ -89,6 +89,7 @@ export function renderPerfil(s) {
           ${infoItem("Cargo", persona.CARGO)}
           ${infoItem("Correo", persona.CORREO)}
           ${infoItem("Base", persona.BASE)}
+          ${infoItem("Empresa", persona.EMPRESA)}
         </div>
       </div>
 

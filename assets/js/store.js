@@ -4,9 +4,9 @@
 // (tabla, KPIs, gráficos, personas, grupos, cursos) consume EXACTAMENTE
 // el mismo arreglo filtrado, eliminando lógicas aisladas por widget.
 // ==========================================================================
-import { colRef, CAMPOS } from "./firebase-config.js?v=2.3.0";
+import { colRef, CAMPOS } from "./firebase-config.js";
 import { onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { normalizarRegistroFirestore, getSemestre, normKey, safeStr, normalizarAsistencia } from "./utils.js";
+import { normalizarRegistroFirestore, getSemestre, normKey, safeStr } from "./utils.js";
 import { estadoDeRegistro, normalizarCedula, clavePersonaCurso, hoyLocal } from "./capacitacion.js";
 
 const listeners = new Set();
@@ -25,7 +25,6 @@ const FILTRO_DEFAULT = {
   curso: "",
   instructor: "",
   salon: "",
-  cargo: "",
   estado: "",          // VIGENTE | PRÓXIMO A VENCER | VENCIDO | SIN FECHA
   soloDuplicados: false,
   soloRevision: false,
@@ -62,7 +61,7 @@ export const store = {
     const etiquetas = {
       busqueda: "Búsqueda", desde: "Desde", hasta: "Hasta",
       semestre: "Semestre", asistio: "Asistencia", base: "Base",
-      grupo: "Grupo", curso: "Curso", instructor: "Instructor", salon: "Salón", cargo: "Cargo",
+      grupo: "Grupo", curso: "Curso", instructor: "Instructor", salon: "Salón",
       estado: "Estado", soloDuplicados: "Solo duplicados", soloRevision: "Solo revisión",
     };
     const activos = [];
@@ -113,8 +112,7 @@ export const store = {
       if (encontrado && f.curso && item.CURSO !== f.curso) encontrado = false;
       if (encontrado && f.instructor && item.INSTRUCTOR !== f.instructor) encontrado = false;
       if (encontrado && f.salon && item.SALON !== f.salon) encontrado = false;
-      if (encontrado && f.cargo && item.CARGO !== f.cargo) encontrado = false;
-      if (encontrado && f.asistio && normalizarAsistencia(item.ASISTIO) !== normalizarAsistencia(f.asistio)) encontrado = false;
+      if (encontrado && f.asistio && (item.ASISTIO || "SÍ").toUpperCase() !== f.asistio) encontrado = false;
       if (encontrado && f.desde && item.FECHA && item.FECHA < f.desde) encontrado = false;
       if (encontrado && f.hasta && item.FECHA && item.FECHA > f.hasta) encontrado = false;
       if (encontrado && f.semestre !== "todos" && item.FECHA) {
@@ -135,7 +133,7 @@ export const store = {
       if (encontrado && f.soloDuplicados && !store._duplicadosSet.has(item._docId)) encontrado = false;
       if (encontrado && f.soloRevision && !store._revisionSet.has(item._docId)) encontrado = false;
 
-      if (encontrado && (f.base || f.grupo || f.curso || f.instructor || f.salon || f.cargo || f.asistio ||
+      if (encontrado && (f.base || f.grupo || f.curso || f.instructor || f.salon || f.asistio ||
           f.desde || f.hasta || f.semestre !== "todos" || f.estado || f.soloDuplicados || f.soloRevision)) {
         store.encontradoPor[item._docId] = "filtros";
       }
@@ -146,24 +144,19 @@ export const store = {
   },
 
   /* ---------------- Conexión a Firestore ---------------- */
-  // Restaurado al flujo original que utilizaba el proyecto antes del rediseño:
-  // getFirestore() + una sola escucha onSnapshot() + getDocs() para recarga manual.
   iniciar() { store.connect(); },
 
   _unsubscribe: null,
 
   connect() {
     store.setEstado("loading");
-    store.notify();
-    if (typeof store._unsubscribe === "function") {
-      try { store._unsubscribe(); } catch {}
-    }
+    if (typeof store._unsubscribe === "function") store._unsubscribe();
     store._unsubscribe = onSnapshot(colRef, (snapshot) => {
       store.procesarSnapshot(snapshot);
     }, (error) => {
-      console.error("[DATA] Error de suscripción:", error);
+      console.error("[FIREBASE] Error de suscripción:", error);
       store.error = {
-        titulo: "No fue posible cargar los datos",
+        titulo: "No fue posible conectar con la nube",
         mensaje: error.message || String(error),
         codigo: error.code || "—",
         proceso: "onSnapshot(capacitaciones)",
@@ -184,6 +177,7 @@ export const store = {
       performance.mark?.("tdc-normalize-end");
       try { performance.measure?.("tdc-normalization", "tdc-normalize-start", "tdc-normalize-end"); } catch {}
       store.estadoHoy = hoyLocal();
+      // Reset de caches e índices derivados.
       store.indiceBusqueda = null;
       store._claves = null;
       store._duplicados = [];
@@ -198,10 +192,10 @@ export const store = {
     } catch (err) {
       console.error("[DATA] Error procesando registros:", err);
       store.error = {
-        titulo: "Se consultaron los datos, pero no fue posible procesarlos",
+        titulo: "Se pudo consultar el total, pero no fue posible obtener los registros",
         mensaje: err.message || String(err),
         codigo: "—",
-        proceso: "procesarSnapshot()",
+        proceso: "procesarSnapshot() / normalización de documentos",
       };
       store.setEstado("partial");
       store.notify();
@@ -216,9 +210,8 @@ export const store = {
       store.procesarSnapshot(snapshot);
       return { ok: true };
     } catch (err) {
-      console.error("[DATA] Error consultando registros:", err);
       store.error = {
-        titulo: "No fue posible cargar los datos",
+        titulo: "No fue posible actualizar los datos",
         mensaje: err.message || String(err),
         codigo: err.code || "—",
         proceso: "getDocs(capacitaciones)",
@@ -315,3 +308,10 @@ export const store = {
   },
 };
 
+// Mapa visual de los estados de conexión (compartido por todas las vistas).
+export const ESTADO_HTML = {
+  loading: '<span class="status-dot status-loading"></span> Conectando...',
+  online: '<span class="status-dot status-online"></span> Conectado a la nube',
+  partial: '<span class="status-dot status-partial"></span> Conexión parcial',
+  error: '<span class="status-dot status-offline"></span> Error de conexión',
+};

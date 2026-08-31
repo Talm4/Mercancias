@@ -4,16 +4,18 @@
 // orquesta el re-render de la vista activa cada vez que cambian los datos
 // o los filtros. Toda la app consume una única fuente: store.filtered.
 // ==========================================================================
-import { store } from "./store.js?v=2.3.0";
+import { store } from "./store.js";
 import { defineRoute, initRouter, route, navigate } from "./router.js";
-import { initFiltros, setFiltroContexto } from "./filtros.js";
+import { initFiltros } from "./filtros.js";
 import { initAsistencias, render as renderAsistencias } from "./asistencias.js";
 import { renderDashboard } from "./dashboard.js";
 import { renderColaboradores } from "./colaboradores.js";
 import { renderGrupos, renderGrupoDetalle } from "./grupos.js";
 import { renderCursos, renderCursoDetalle } from "./cursos.js";
+import { renderAnalitica } from "./analitica.js";
 import { initPerfil, abrirPerfil, renderPerfil, cerrarPerfil } from "./perfil.js";
-import { escapeHtml } from "./ui.js";
+import { renderEstado, escapeHtml } from "./ui.js";
+import { showToast } from "./utils.js";
 
 let currentRoute = { name: "inicio", param: "" };
 
@@ -23,6 +25,7 @@ defineRoute("asistencias", () => renderAsistencias(store));
 defineRoute("colaboradores", () => renderColaboradores(store));
 defineRoute("cursos", () => renderCursos(store));
 defineRoute("grupos", () => renderGrupos(store));
+defineRoute("analitica", () => renderAnalitica(store));
 defineRoute("grupo", (nombre) => renderGrupoDetalle(store, nombre));
 defineRoute("curso", (nombre) => renderCursoDetalle(store, nombre));
 
@@ -34,6 +37,7 @@ function renderCurrent() {
     case "colaboradores": renderColaboradores(store); break;
     case "cursos": renderCursos(store); break;
     case "grupos": renderGrupos(store); break;
+    case "analitica": renderAnalitica(store); break;
     case "grupo": renderGrupoDetalle(store, currentRoute.param); break;
     case "curso": renderCursoDetalle(store, currentRoute.param); break;
   }
@@ -41,50 +45,31 @@ function renderCurrent() {
 }
 
 function renderChrome() {
+  renderEstado(store, "connectionBadge", "loadErrorPanel");
   const total = document.getElementById("totalRecords");
   if (total) total.innerText = store.sizeCrudo;
-
   const ult = document.getElementById("lastUpdated");
   if (ult) ult.innerText = store.ultimaActualizacion ? `Actualizado: ${store.ultimaActualizacion}` : "";
   const topUlt = document.getElementById("topLastUpdated");
-  if (topUlt) {
-    if (store.estado === "loading") topUlt.innerText = "Cargando datos…";
-    else topUlt.innerText = store.ultimaActualizacion ? `Actualizado ${store.ultimaActualizacion}` : "";
-  }
-
-  const btn = document.getElementById("btnTraerDatos");
-  if (btn) {
-    const cargando = store.estado === "loading";
-    btn.disabled = cargando;
-    btn.innerHTML = cargando
-      ? '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Cargando…'
-      : '<i class="fa-solid fa-arrows-rotate me-1"></i> Traer datos';
-  }
-
-  const notice = document.getElementById("dataLoadNotice");
-  if (notice) {
-    if (store.estado === "error") {
-      notice.hidden = false;
-      const msg = store.error?.mensaje || "No se pudieron consultar los registros.";
-      const code = store.error?.codigo && store.error.codigo !== "—" ? ` (${store.error.codigo})` : "";
-      notice.innerHTML = `<strong>No fue posible cargar los datos.</strong> ${msg}${code} <button type="button" id="retryDataInline" class="btn btn-sm btn-outline-navy ms-2">Reintentar</button>`;
-    } else {
-      notice.hidden = true;
-      notice.innerHTML = "";
-    }
-  }
+  if (topUlt) topUlt.innerText = store.ultimaActualizacion ? `Actualizado ${store.ultimaActualizacion}` : "Conectando…";
 }
 
-window.navigate = navigate;
-
-window.traerDatos = async function () {
-  await store.actualizar();
+/* ------------------------------ Botones globales ------------------------------ */
+window.actualizarDatos = async function () {
+  const botones = ["btnActualizarDatos", "btnActualizarDatosDash"];
+  botones.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Actualizando...'; }
+  });
+  const r = await store.actualizar();
+  botones.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-arrows-rotate me-1"></i> Actualizar datos'; }
+  });
+  if (r.ok) showToast("Datos actualizados desde la nube.", "success");
 };
 
-document.getElementById("btnTraerDatos")?.addEventListener("click", () => window.traerDatos());
-document.addEventListener("click", (e) => {
-  if (e.target.closest("#retryDataInline")) window.traerDatos();
-});
+window.navigate = navigate;
 
 window.reintentarCarga = function () {
   store.connect();
@@ -114,7 +99,6 @@ initPerfil();
 initRouter((name, param) => {
   // El router ya ejecuta el render de la ruta. Aquí solo sincronizamos estado.
   currentRoute = { name, param };
-  setFiltroContexto(name);
 });
 
 store.subscribe((s) => {

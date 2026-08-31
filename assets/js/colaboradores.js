@@ -3,6 +3,7 @@
 // ==========================================================================
 import { agregarPorPersona } from "./agregados.js";
 import { escapeHtml, renderKpiStrip } from "./ui.js";
+import { formatFechaDisplay } from "./utils.js";
 import { estadosPorPersona, coloresEstadoCapacitacion } from "./capacitacion.js";
 import { store } from "./store.js";
 
@@ -39,7 +40,7 @@ export function renderColaboradores(s) {
   const tbody = document.getElementById("colaboradoresTbody");
   if (!tbody) return;
   if (personas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">No hay personas que coincidan con los filtros.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-5 text-muted">No hay personas que coincidan con los filtros.</td></tr>';
     return;
   }
 
@@ -53,9 +54,10 @@ export function renderColaboradores(s) {
       <td>${escapeHtml(p.CARGO || "—")}</td>
       <td>${escapeHtml(p.BASE || "—")}</td>
       <td title="${escapeHtml(p.CORREO)}">${escapeHtml(p.CORREO || "—")}</td>
+      <td class="mono">${p.totalCursos}</td>
       <td>${p.asistencias} / ${p.inasistencias}</td>
-      <td class="mono">${(p.asistencias + p.inasistencias) ? Math.round(p.asistencias / (p.asistencias + p.inasistencias) * 100) : 0}%</td>
       <td>${chip}</td>
+      <td class="mono">${formatFechaDisplay(p.ultimaFecha)}</td>
     </tr>`;
   }).join("");
 }

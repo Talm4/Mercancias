@@ -5,7 +5,7 @@
 // garantizar que un "recuento de registros" nunca se confunda con un
 // "recuento de personas únicas".
 // ==========================================================================
-import { safeStr, parseNotaNumero, normKey, asisteRegistro } from "./utils.js";
+import { safeStr, parseNotaNumero, normKey } from "./utils.js";
 
 // Clave de identidad de una persona: el ID (cédula). Si el registro no
 // trae ID, se usa el nombre normalizado como respaldo para no contar el
@@ -18,7 +18,7 @@ export function personKey(rec) {
 }
 
 export function asisteSi(rec) {
-  return asisteRegistro(rec);
+  return (rec.ASISTIO || "SÍ").toUpperCase() !== "NO";
 }
 
 // Resumen completo de un conjunto de registros (ya filtrados).
