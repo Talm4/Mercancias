@@ -50,6 +50,8 @@ function renderChrome() {
   if (total) total.innerText = store.sizeCrudo;
   const ult = document.getElementById("lastUpdated");
   if (ult) ult.innerText = store.ultimaActualizacion ? `Actualizado: ${store.ultimaActualizacion}` : "";
+  const topUlt = document.getElementById("topLastUpdated");
+  if (topUlt) topUlt.innerText = store.ultimaActualizacion ? `Actualizado ${store.ultimaActualizacion}` : "Conectando…";
 }
 
 /* ------------------------------ Botones globales ------------------------------ */
@@ -66,6 +68,8 @@ window.actualizarDatos = async function () {
   });
   if (r.ok) showToast("Datos actualizados desde la nube.", "success");
 };
+
+window.navigate = navigate;
 
 window.reintentarCarga = function () {
   store.connect();
@@ -93,8 +97,8 @@ initAsistencias();
 initPerfil();
 
 initRouter((name, param) => {
+  // El router ya ejecuta el render de la ruta. Aquí solo sincronizamos estado.
   currentRoute = { name, param };
-  renderCurrent();
 });
 
 store.subscribe((s) => {

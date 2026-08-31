@@ -5,6 +5,7 @@
 // ==========================================================================
 import { store } from "./store.js";
 import { resumen, agregarPorGrupo } from "./agregados.js";
+import { getAnalytics } from "./analytics-engine.js";
 import { renderKpiStrip, escapeHtml } from "./ui.js";
 import { formatFechaDisplay } from "./utils.js";
 import { estadosPorPersona } from "./capacitacion.js";
@@ -155,34 +156,29 @@ function chipEstado(est, conDetalle) {
 
 // Estado por persona+curso (agrupando todos los registros de esa persona).
 function estadosDeLaFiltrada(data, hoyLocalDate) {
-  // Pasa por la persona completa de store.data: así una persona filtrada por
-  // un registro muestra el estado de TODOS sus cursos (información global).
+  // V2: índices en una sola pasada. Evita data.filter() por cada persona (O(n²)).
   const porPersona = new Map();
-  store.data.forEach(rec => {
+  for (const rec of store.data) {
     const clave = rec.ID || `N:${rec.NOMBRES}`;
     if (!porPersona.has(clave)) porPersona.set(clave, []);
     porPersona.get(clave).push(rec);
-  });
-  const personasPresentes = new Set();
-  data.forEach(rec => {
+  }
+  const visibles = new Map();
+  for (const rec of data) {
     const clave = rec.ID || `N:${rec.NOMBRES}`;
-    if (clave) personasPresentes.add(clave);
-  });
+    if (!clave) continue;
+    if (!visibles.has(clave)) visibles.set(clave, new Set());
+    visibles.get(clave).add(String(rec.CURSO || "").toUpperCase());
+  }
   const resultados = [];
-  porPersona.forEach((registros, clave) => {
-    if (!personasPresentes.has(clave)) return;
+  for (const [clave, cursosVisibles] of visibles) {
+    const registros = porPersona.get(clave) || [];
     const p = estadosPorPersona(registros, hoyLocalDate);
-    // Solo interesan los cursos que aparecen en el universo filtrado.
-    const cursosVisibles = new Set(data
-      .filter(r => (r.ID || `N:${r.NOMBRES}`) === clave)
-      .map(r => String(r.CURSO || "").toUpperCase()));
     const cursos = p.cursos.filter(c => cursosVisibles.has(String(c.curso).toUpperCase()));
-    const global = cursos.length ? p.global : null;
-    resultados.push({ clave, cursos, global });
-  });
+    resultados.push({ clave, cursos, global: cursos.length ? p.global : null });
+  }
   return resultados;
 }
-
 function renderEstados(s) {
   const cont = document.getElementById("dashEstadosResumen");
   if (!cont) return;
@@ -399,8 +395,9 @@ function renderCalidadDetalle(s) {
 
   // Clasificar revisión por categoría aproximada.
   const catRevision = {};
+  const dataById = new Map(s.data.map(d => [d._docId, d]));
   cal.revision.forEach(id => {
-    const rec = s.data.find(d => d._docId === id);
+    const rec = dataById.get(id);
     if (!rec) return;
     const problemas = s.calculaProblemasRec(rec);
     problemas.forEach(p => { catRevision[p] = (catRevision[p] || 0) + 1; });
@@ -436,18 +433,31 @@ function renderCalidadDetalle(s) {
 
 /* ============================== Render del dashboard ============================== */
 export function renderDashboard(s) {
+  performance.mark?.("tdc-dashboard-start");
   const data = s.filtered;
-  const r = resumen(data);
+  const a = getAnalytics(s);
+  const r = {
+    registros:a.summary.registros, personasUnicas:a.summary.personas, cursos:a.summary.cursos, grupos:a.summary.grupos,
+    asistieron:a.summary.si, noAsistieron:a.summary.no, pctAsistencia:a.summary.pct, promedioNota:a.summary.promedioNota
+  };
 
   renderHero(s);
   renderKpis(s, r);
   renderAsistenciaGeneral(data);
   renderEstados(s);
-  asistenciaPor(data, "BASE", "dashChartPorBase", false);
-  asistenciaPor(data, "CURSO", "dashChartPorCurso", true);
   renderGrupos(data);
   renderAlertas(data);
   renderNoAsistieron(data);
   renderUltimos(data);
   renderCalidadDetalle(s);
+
+  // Gráficos secundarios se difieren para que KPIs y contenido útil aparezcan primero.
+  const renderSecondary = () => {
+    asistenciaPor(data, "BASE", "dashChartPorBase", false);
+    asistenciaPor(data, "CURSO", "dashChartPorCurso", true);
+    performance.mark?.("tdc-dashboard-end");
+    try { performance.measure?.("tdc-dashboard-render", "tdc-dashboard-start", "tdc-dashboard-end"); } catch {}
+  };
+  if ("requestIdleCallback" in window) requestIdleCallback(renderSecondary, { timeout: 160 });
+  else requestAnimationFrame(renderSecondary);
 }

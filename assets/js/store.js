@@ -37,6 +37,7 @@ export const store = {
   estado: "loading",   // loading | online | partial | error
   sizeCrudo: 0,
   ultimaActualizacion: "",
+  dataVersion: 0,
   // Metadata de integridad calculada sobre store.data después de normalizar:
   encontradoPor: null,     // mapa _docId -> {busqueda, filtros}
   indiceBusqueda: null,    // mapa _docId -> textos normalizados (sin tildes)
@@ -170,7 +171,11 @@ export const store = {
     try {
       const docs = snapshot.docs;
       if (!Array.isArray(docs)) throw new Error("snapshot.docs no es un arreglo. Estructura inesperada.");
+      performance.mark?.("tdc-normalize-start");
       store.data = docs.map(d => normalizarRegistroFirestore({ _docId: d.id, ...d.data() }, CAMPOS));
+      store.dataVersion++;
+      performance.mark?.("tdc-normalize-end");
+      try { performance.measure?.("tdc-normalization", "tdc-normalize-start", "tdc-normalize-end"); } catch {}
       store.estadoHoy = hoyLocal();
       // Reset de caches e índices derivados.
       store.indiceBusqueda = null;

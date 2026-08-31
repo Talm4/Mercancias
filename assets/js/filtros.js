@@ -128,8 +128,8 @@ export function initFiltros() {
   const selIntegridad = document.getElementById("filtroIntegridad");
   if (selIntegridad) {
     selIntegridad.addEventListener("change", () => {
-      store.setFiltro("soloDuplicados", selIntegridad.value === "duplicados");
-      store.setFiltro("soloRevision", selIntegridad.value === "revision");
+      store.filtros.soloDuplicados = selIntegridad.value === "duplicados";
+      store.filtros.soloRevision = selIntegridad.value === "revision";
       store.applyFilters();
     });
   }

@@ -79,12 +79,3 @@ talma-data-center/
   (límite de Firestore).
 - El antiguo enlace `analitica.html` redirige automáticamente a
   `index.html#analitica`.
-
-
-## Rediseño visual 2026
-- Se conserva Firebase/Firestore y la lógica existente.
-- Navegación reorganizada con patrón tipo Microsoft Fluent.
-- `Resumen` concentra KPIs, asistencia, alertas y calidad de datos.
-- `Tendencias` elimina gráficos que duplicaban el resumen y conserva evolución, notas, instructores y horas.
-- `Registros`, `Personas`, `Cursos` y `Grupos` quedan orientados a tareas específicas.
-- Diseño responsive con identidad Talma (verde + azul) y modo oscuro existente.
