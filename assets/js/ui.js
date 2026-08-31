@@ -28,6 +28,16 @@ export function renderKpiStrip(containerId, items) {
   cont.innerHTML = items.map(kpiCard).join("");
 }
 
+export function renderMetrics(containerId, items) {
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  cont.innerHTML = items.map(item => `<article class="metric-card">
+    <span class="metric-label">${escapeHtml(item.label)}</span>
+    <strong class="metric-value">${escapeHtml(item.value)}</strong>
+    <span class="metric-foot ${escapeHtml(item.tone || "")}">${escapeHtml(item.foot || "")}</span>
+  </article>`).join("");
+}
+
 export function asistenciaPill(rec) {
   const esSi = (rec.ASISTIO || "SÍ").toUpperCase() !== "NO";
   return `<span class="hz-pill ${esSi ? "si" : "no"}"><span class="hz-dot"></span>${esSi ? "SÍ" : "NO"}</span>`;

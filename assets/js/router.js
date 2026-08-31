@@ -1,45 +1,19 @@
-// ==========================================================================
-// TALMA DATA CENTER — Router por hash (SPA)
-// ==========================================================================
+const allowed = new Set(["resumen", "registros", "personas", "cursos", "grupos", "analitica"]);
+const aliases = { inicio: "resumen", asistencias: "registros", colaboradores: "personas" };
+let current = "resumen";
 
-const routes = new Map();
-let currentView = null;
-let onNavigate = () => {};
-
-export function defineRoute(name, onShow) {
-  routes.set(name, onShow);
+export function navigate(view) { location.hash = `#${aliases[view] || view}`; }
+export function route() { return current; }
+export function initRouter(onChange) {
+  const handle = () => {
+    const raw = location.hash.replace(/^#\/?/, "").split("/")[0] || "resumen";
+    const next = aliases[raw] || raw;
+    current = allowed.has(next) ? next : "resumen";
+    document.querySelectorAll(".tdc-view").forEach(v => v.classList.toggle("view-active", v.id === `view-${current}`));
+    document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === current));
+    onChange(current);
+  };
+  window.addEventListener("hashchange", handle);
+  handle();
 }
 
-export function navigate(view) {
-  location.hash = "#" + view;
-}
-
-export function initRouter(navigationHook) {
-  onNavigate = navigationHook || onNavigate;
-  window.addEventListener("hashchange", handleRoute);
-  handleRoute();
-}
-
-function handleRoute() {
-  const hash = location.hash.replace(/^#\/?/, "");
-  const [name, ...rest] = hash.split("/");
-  const param = decodeURIComponent(rest.join("/") || "");
-  const routeName = routes.has(name) ? name : "inicio";
-
-  document.querySelectorAll(".tdc-view").forEach(v => v.classList.remove("view-active"));
-  const viewEl = document.getElementById("view-" + routeName);
-  if (viewEl) viewEl.classList.add("view-active");
-
-  document.querySelectorAll("[data-nav]").forEach(a => {
-    a.classList.toggle("active", a.dataset.nav === routeName);
-  });
-
-  currentView = routeName;
-  const onShow = routes.get(routeName);
-  if (onShow) onShow(param);
-  onNavigate(routeName, param);
-}
-
-export function route(view) {
-  return currentView;
-}

@@ -1,53 +1,73 @@
-// TALMA DATA CENTER V2 — Analítica cacheada y render diferido.
-import { getAnalytics } from './analytics-engine.js';
-import { parseNotaNumero } from './utils.js';
+import { renderMetrics, escapeHtml } from "./ui.js";
+import { chartTheme, upsertChart } from "./chart-manager.js";
 
-const charts = new Map();
-const PALETTE = {green:'#137a42', red:'#c43d3d', blue:'#235a7f', teal:'#287d8e', amber:'#b7791f'};
+const GREEN = "#007a53", RED = "#c42b1c", CYAN = "#35c2d7", NAVY = "#10344d";
+let activeDimension = "curso";
+let token = 0;
 
-function upsert(id, type, labels, datasets, extra={}) {
-  const canvas=document.getElementById(id); if(!canvas) return;
-  const ctx=canvas.getContext('2d');
-  const existing=charts.get(id);
-  const options={responsive:true,maintainAspectRatio:false,animation:false,normalized:true,plugins:{legend:{position:'bottom',labels:{boxWidth:10,usePointStyle:true}}},...extra};
-  if(existing && existing.config.type===type){ existing.data.labels=labels; existing.data.datasets=datasets; existing.options={...existing.options,...options}; existing.update('none'); return; }
-  if(existing) existing.destroy();
-  charts.set(id,new Chart(ctx,{type,data:{labels,datasets},options}));
-}
-function top(items,n=10,metric='total'){ return [...items].sort((a,b)=>b[metric]-a[metric]).slice(0,n); }
-function renderInsights(a){
-  const el=document.getElementById('analyticsInsights'); if(!el)return;
-  const bases=top(a.base,1,'no'), cursos=top(a.curso,1,'no'), inst=top(a.instructor,1,'total');
-  const items=[];
-  if(bases[0]&&a.summary.no) items.push(`<strong>${bases[0].key}</strong> concentra ${Math.round(bases[0].no/a.summary.no*100)}% de las inasistencias (${bases[0].no}).`);
-  if(cursos[0]) items.push(`<strong>${cursos[0].key}</strong> registra ${cursos[0].pct}% de asistencia en ${cursos[0].total} registros.`);
-  if(inst[0]) items.push(`<strong>${inst[0].key}</strong> es el instructor con mayor volumen: ${inst[0].total} registros.`);
-  if(a.summary.promedioNota!==null) items.push(`La nota promedio del universo filtrado es <strong>${a.summary.promedioNota.toFixed(1)}</strong>.`);
-  el.innerHTML=items.length?items.map((x,i)=>`<div class="insight-row"><span>${i+1}</span><p>${x}</p></div>`).join(''):'<div class="empty-mini">No hay datos suficientes para generar hallazgos.</div>';
-}
-function renderSummary(a){
-  const s=a.summary;
-  const el=document.getElementById('analyticsSummary'); if(!el)return;
-  el.innerHTML=`<div><span>Registros analizados</span><strong>${s.registros.toLocaleString('es-CO')}</strong></div><div><span>Personas</span><strong>${s.personas.toLocaleString('es-CO')}</strong></div><div><span>Asistencia</span><strong>${s.pct}%</strong></div><div><span>Horas ejecutadas</span><strong>${s.horas.toLocaleString('es-CO')}</strong></div>`;
-}
-function renderCharts(a,s){
-  const trend=a.fecha;
-  upsert('chartEvolucion','line',trend.map(x=>x.key),[{label:'% asistencia',data:trend.map(x=>x.pct),borderColor:PALETTE.teal,backgroundColor:'rgba(40,125,142,.10)',fill:true,tension:.2,pointRadius:trend.length>30?0:2}],{scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}},x:{ticks:{maxTicksLimit:12}}}});
-  const cursos=top(a.curso,10,'total');
-  upsert('chartPorCurso','bar',cursos.map(x=>x.key),[{label:'Asistieron',data:cursos.map(x=>x.si),backgroundColor:PALETTE.green},{label:'No asistieron',data:cursos.map(x=>x.no),backgroundColor:PALETTE.red}],{indexAxis:'y',scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true}}});
-  const inst=top(a.instructor,10,'total');
-  upsert('chartPorInstructor','bar',inst.map(x=>x.key),[{label:'% asistencia',data:inst.map(x=>x.pct),backgroundColor:PALETTE.blue}],{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%'}}}});
-  upsert('chartHorasPeriodo','line',a.periodo.map(x=>x.key),[{label:'Horas',data:a.periodo.map(x=>x.horas),borderColor:PALETTE.blue,backgroundColor:'rgba(35,90,127,.10)',fill:true,tension:.2}],{plugins:{legend:{display:false}}});
-  const notas=(s.filtered||[]).map(x=>parseNotaNumero(x.NOTA)).filter(x=>x!==null);
-  const bins=[0,60,70,80,90,101], labels=['<60','60–69','70–79','80–89','90–100'], counts=[0,0,0,0,0];
-  for(const n of notas){ let idx=n<60?0:n<70?1:n<80?2:n<90?3:4; counts[idx]++; }
-  upsert('chartNotas','bar',labels,[{label:'Registros',data:counts,backgroundColor:PALETTE.amber}],{plugins:{legend:{display:false}}});
+function idle(task) {
+  if ("requestIdleCallback" in window) requestIdleCallback(task, { timeout: 400 });
+  else setTimeout(task, 32);
 }
 
-export function renderAnalitica(s){
-  performance.mark?.('tdc-analytics-start');
-  const a=getAnalytics(s);
-  renderSummary(a); renderInsights(a);
-  const run=()=>{renderCharts(a,s);performance.mark?.('tdc-analytics-end');try{performance.measure?.('tdc-analytics-render','tdc-analytics-start','tdc-analytics-end')}catch{}};
-  if('requestIdleCallback' in window) requestIdleCallback(run,{timeout:180}); else requestAnimationFrame(run);
+function chartBase() {
+  const t = chartTheme();
+  return { plugins: { legend: { labels: { color: t.text, boxWidth: 10 } } }, scales: { x: { ticks: { color: t.text }, grid: { color: t.grid } }, y: { ticks: { color: t.text }, grid: { color: t.grid } } } };
+}
+
+function renderKpis(m) {
+  renderMetrics("analysisKpis", [
+    { label: "Cobertura", value: m.summary.personasUnicas, foot: `${m.summary.bases} bases` },
+    { label: "Asistencia", value: `${m.summary.pctAsistencia}%`, foot: `${m.summary.asistieron} confirmadas`, tone: m.summary.pctAsistencia >= 85 ? "positive" : "warning" },
+    { label: "Horas", value: m.summary.horas.toLocaleString("es-CO"), foot: `${m.summary.grupos} grupos` },
+    { label: "Calidad", value: `${m.quality.score}%`, foot: `${m.quality.review} por revisar`, tone: m.quality.score >= 95 ? "positive" : "warning" },
+  ]);
+}
+
+function trend(m) {
+  const rows = m.by.fecha.filter(x => x.key !== "SIN ASIGNAR").sort((a, b) => a.key.localeCompare(b.key));
+  const opt = chartBase();
+  upsertChart("analysisTrend", { type: "line", data: { labels: rows.map(x => x.key), datasets: [{ label: "% asistencia", data: rows.map(x => x.pctAsistencia), borderColor: GREEN, backgroundColor: "rgba(0,122,83,.1)", fill: true, tension: .25, pointRadius: rows.length > 30 ? 0 : 2 }, { label: "Volumen", data: rows.map(x => x.total), borderColor: CYAN, borderDash: [4, 4], yAxisID: "volume", pointRadius: 0 }] }, options: { ...opt, interaction: { mode: "index", intersect: false }, plugins: { ...opt.plugins, decimation: { enabled: true, algorithm: "lttb", samples: 60 } }, scales: { x: opt.scales.x, y: { ...opt.scales.y, min: 0, max: 100, ticks: { ...opt.scales.y.ticks, callback: v => `${v}%` } }, volume: { display: false, beginAtZero: true, position: "right" } } } });
+}
+
+function attendance(m) {
+  upsertChart("analysisAttendance", { type: "doughnut", data: { labels: ["Asistieron", "No asistieron"], datasets: [{ data: [m.summary.asistieron, m.summary.noAsistieron], backgroundColor: [GREEN, RED], borderWidth: 0 }] }, options: { cutout: "72%", plugins: { legend: { position: "bottom", labels: { color: chartTheme().text, boxWidth: 10 } } } } });
+}
+
+function comparison(m, dimension) {
+  const rows = (m.by[dimension] || []).slice().sort((a, b) => b.total - a.total).slice(0, 15).reverse();
+  const opt = chartBase();
+  document.getElementById("analysisCompareTitle").textContent = `Comparación por ${dimension}`;
+  upsertChart("analysisComparison", { type: "bar", data: { labels: rows.map(x => x.key), datasets: [{ label: "Asistieron", data: rows.map(x => x.asistieron), backgroundColor: GREEN, stack: "attendance", borderRadius: 3 }, { label: "No asistieron", data: rows.map(x => x.noAsistieron), backgroundColor: RED, stack: "attendance", borderRadius: 3 }] }, options: { ...opt, indexAxis: "y", scales: { x: { ...opt.scales.x, stacked: true, beginAtZero: true }, y: { ...opt.scales.y, stacked: true, grid: { display: false } } } } });
+  document.getElementById("analysisMatrix").innerHTML = rows.slice().reverse().map(x => `<div class="matrix-row"><strong title="${escapeHtml(x.key)}">${escapeHtml(x.key)}</strong><span>${x.total} reg.</span><span class="${x.pctAsistencia >= 85 ? "good" : "bad"}">${x.pctAsistencia}%</span></div>`).join("") || '<div class="empty-cell">Sin datos.</div>';
+}
+
+function hours(m) {
+  const periods = new Map();
+  m.by.fecha.forEach(row => {
+    if (!/^\d{4}-\d{2}/.test(row.key)) return;
+    const year = row.key.slice(0, 4);
+    const sem = Number(row.key.slice(5, 7)) <= 6 ? "S1" : "S2";
+    const key = `${year}-${sem}`;
+    periods.set(key, (periods.get(key) || 0) + row.horas);
+  });
+  const rows = [...periods.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  const opt = chartBase();
+  upsertChart("analysisHours", { type: "bar", data: { labels: rows.map(x => x[0]), datasets: [{ label: "Horas", data: rows.map(x => Math.round(x[1] * 10) / 10), backgroundColor: NAVY, borderRadius: 5 }] }, options: { ...opt, plugins: { legend: { display: false } } } });
+}
+
+function grades(m) {
+  const opt = chartBase();
+  upsertChart("analysisGrades", { type: "bar", data: { labels: m.gradeBins.map(x => x.label), datasets: [{ label: "Registros", data: m.gradeBins.map(x => x.count), backgroundColor: [RED, "#e06b45", "#d99000", CYAN, GREEN], borderRadius: 5 }] }, options: { ...opt, plugins: { legend: { display: false } } } });
+}
+
+export function initAnalitica(onChange) {
+  document.getElementById("analysisDimension")?.addEventListener("change", e => { activeDimension = e.target.value; onChange(); });
+}
+
+export function renderAnalitica(s) {
+  const current = ++token;
+  renderKpis(s.metrics);
+  idle(() => { if (current !== token || !document.getElementById("view-analitica")?.classList.contains("view-active")) return; trend(s.metrics); attendance(s.metrics); });
+  idle(() => { if (current !== token || !document.getElementById("view-analitica")?.classList.contains("view-active")) return; comparison(s.metrics, activeDimension); hours(s.metrics); grades(s.metrics); });
 }

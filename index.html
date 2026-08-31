@@ -1,519 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TALMA DATA CENTER · Gestión y análisis de información</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/styles.css">
-    <link rel="stylesheet" href="assets/css/design-v2.css">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071b2b">
+  <title>Talma Mercancías · Centro de aprendizaje</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/overrides.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
-
-    <!-- ================= APP SHELL V2 ================= -->
-    <aside class="app-sidebar" aria-label="Navegación principal">
-        <div class="brand-block">
-            <div class="brand-symbol">T</div>
-            <div><strong>Talma</strong><span>Training Intelligence</span></div>
-        </div>
-        <nav class="app-nav">
-            <a href="#inicio" data-nav="inicio"><i class="fa-solid fa-chart-pie"></i><span>Resumen</span></a>
-            <a href="#asistencias" data-nav="asistencias"><i class="fa-solid fa-list-check"></i><span>Registros</span></a>
-            <a href="#colaboradores" data-nav="colaboradores"><i class="fa-solid fa-users"></i><span>Personas</span></a>
-            <div class="nav-group-label">ANÁLISIS</div>
-            <a href="#cursos" data-nav="cursos"><i class="fa-solid fa-book-open"></i><span>Cursos</span></a>
-            <a href="#grupos" data-nav="grupos"><i class="fa-solid fa-people-group"></i><span>Grupos</span></a>
-            <a href="#analitica" data-nav="analitica"><i class="fa-solid fa-chart-line"></i><span>Tendencias</span></a>
-        </nav>
-        <div class="sidebar-bottom">
-            <div class="sync-mini"><span class="status-dot status-loading"></span><div><strong>Firebase</strong><small>Sincronización activa</small></div></div>
-            <button type="button" class="theme-btn" id="themeToggleBtn" title="Cambiar tema"><i class="fa-solid fa-moon"></i><span>Tema</span></button>
-        </div>
+  <div class="app-shell">
+    <aside class="side-rail" id="sideRail">
+      <div class="brand-block">
+        <div class="brand-symbol" aria-hidden="true"><span>T</span></div>
+        <div><strong>Talma</strong><small>Mercancías</small></div>
+      </div>
+      <nav class="primary-nav" aria-label="Navegación principal">
+        <a href="#resumen" data-nav="resumen"><i class="fa-solid fa-grid-2"></i><span>Resumen</span></a>
+        <a href="#registros" data-nav="registros"><i class="fa-solid fa-table-list"></i><span>Registros</span></a>
+        <a href="#personas" data-nav="personas"><i class="fa-solid fa-user-group"></i><span>Personas</span></a>
+        <a href="#cursos" data-nav="cursos"><i class="fa-solid fa-book-open"></i><span>Cursos</span></a>
+        <a href="#grupos" data-nav="grupos"><i class="fa-solid fa-people-group"></i><span>Grupos</span></a>
+        <a href="#analitica" data-nav="analitica"><i class="fa-solid fa-chart-line"></i><span>Analítica</span></a>
+      </nav>
+      <div class="rail-footer">
+        <div class="connection-mini" id="connectionBadge"><span class="status-dot status-loading"></span> Sincronizando</div>
+        <button class="icon-button" id="themeToggleBtn" aria-label="Cambiar tema"><i class="fa-solid fa-moon"></i></button>
+      </div>
     </aside>
-    <header class="app-topbar">
-        <div class="topbar-title"><small>Mercancías peligrosas</small><strong>Centro de control de capacitación</strong></div>
-        <div class="topbar-actions">
-            <span id="topLastUpdated" class="last-sync"></span>
-            <button class="icon-action" type="button" onclick="actualizarDatos()" title="Actualizar"><i class="fa-solid fa-arrows-rotate"></i></button>
+
+    <main class="workspace">
+      <header class="top-commandbar">
+        <button class="icon-button mobile-menu" id="menuToggle" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+        <div class="page-context">
+          <span class="eyebrow">Centro de aprendizaje operacional</span>
+          <h1 id="pageTitle">Resumen ejecutivo</h1>
         </div>
-    </header>
-    <main class="app-main">
-        <!-- ================= FILTROS COMPARTIDOS ================= -->
-        <div class="filter-panel">
-            <div class="section-title mb-3">
-                <span class="hz-diamond bg-navy"><i class="fa-solid fa-filter" style="color:#fff"></i></span>
-                Filtros
-            </div>
-            <div id="filtroBarContainer"></div>
+        <div class="top-actions">
+          <span class="sync-copy" id="lastUpdated">Esperando datos</span>
+          <button class="command-button secondary" id="btnActualizarDatos" onclick="actualizarDatos()"><i class="fa-solid fa-rotate"></i><span>Actualizar</span></button>
+          <button class="command-button primary" onclick="abrirModalNuevo()"><i class="fa-solid fa-plus"></i><span>Nuevo registro</span></button>
         </div>
+      </header>
 
-        <!-- ================= VISTA: INICIO ================= -->
-        <section id="view-inicio" class="tdc-view">
-            <div class="page-intro">
-                <div><span class="eyebrow">COMMAND CENTER</span><h2>Resumen ejecutivo</h2><p id="dashHeroSub">Estado general de formación, asistencia y calidad de los datos.</p></div>
-                <div class="intro-actions"><div><span id="dashUpdateLabel">Última actualización</span><strong id="dashUpdateValue">—</strong></div><button class="btn btn-navy btn-sm" id="btnActualizarDatosDash" onclick="actualizarDatos()"><i class="fa-solid fa-arrows-rotate me-1"></i> Sincronizar</button></div>
-            </div>
-            <div id="dashCalidad" class="quality-banner"></div>
-            <div id="dashKpis" class="kpi-strip executive-kpis"></div>
+      <div class="filter-command" id="filtroBarContainer"></div>
+      <div id="loadErrorPanel" class="d-none app-error"></div>
 
-            <div class="executive-layout">
-                <section class="panel panel-primary">
-                    <div class="panel-head"><div><span class="panel-kicker">ASISTENCIA</span><h3>Panorama general</h3></div><span class="panel-note">Universo filtrado</span></div>
-                    <div class="overview-grid">
-                        <div class="donut-zone"><canvas id="dashChartAsistencia"></canvas><div id="dashDonaLeyenda"></div></div>
-                        <div id="dashEstadosResumen" class="estados-resumen"></div>
-                    </div>
-                </section>
-                <aside class="panel attention-panel">
-                    <div class="panel-head"><div><span class="panel-kicker">ATENCIÓN</span><h3>Hallazgos operativos</h3></div></div>
-                    <div id="dashAlertas" class="alertas-list"></div>
-                    <div class="panel-separator"></div>
-                    <div class="subpanel-title"><span>No asistieron recientemente</span><button class="link-btn" onclick="irANoAsistieron()">Ver todos</button></div>
-                    <div id="dashNoAsistieron" class="no-asistieron-list"></div>
-                </aside>
+      <div class="view-stage">
+        <section id="view-resumen" class="tdc-view" aria-labelledby="pageTitle">
+          <div class="executive-hero">
+            <div>
+              <span class="hero-kicker">Panorama operacional</span>
+              <h2>Decisiones de capacitación, sin esperar al informe.</h2>
+              <p id="dashHeroSub">Consolidando asistencia, vigencias y calidad de datos.</p>
             </div>
-
-            <div class="analysis-grid">
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">BASES</span><h3>Asistencia por operación</h3></div></div><div class="chart-box"><canvas id="dashChartPorBase"></canvas></div></section>
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">CURSOS</span><h3>Volumen y asistencia</h3></div></div><div class="chart-box"><canvas id="dashChartPorCurso"></canvas></div></section>
-            </div>
-
-            <div class="operations-grid">
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">GRUPOS</span><h3>Desempeño reciente</h3></div></div><div class="table-responsive compact-table"><table class="table align-middle mb-0 dash-table"><thead><tr><th>Grupo</th><th>Total</th><th>Asistieron</th><th>No asistieron</th><th>%</th></tr></thead><tbody id="dashGruposBody"></tbody></table></div></section>
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">ACTIVIDAD</span><h3>Últimos registros</h3></div></div><div id="dashUltimos" class="ultimos-list"></div></section>
-                <section class="panel quality-panel"><div class="panel-head"><div><span class="panel-kicker">DATA QUALITY</span><h3>Calidad de datos</h3></div></div><div id="dashCalidadDetalle" class="calidad-detalle"></div></section>
-            </div>
+            <div class="hero-health" id="dashCalidad"></div>
+          </div>
+          <div id="dashKpis" class="metric-grid"></div>
+          <div class="summary-layout">
+            <article class="surface span-8">
+              <div class="surface-head"><div><span class="section-kicker">Tendencia</span><h3>Asistencia en el tiempo</h3></div><span class="context-pill" id="trendContext">Universo actual</span></div>
+              <div class="chart-frame chart-primary"><canvas id="dashTrendChart"></canvas></div>
+            </article>
+            <article class="surface span-4 findings-panel">
+              <div class="surface-head"><div><span class="section-kicker">Lectura automática</span><h3>Hallazgos</h3></div><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+              <div id="dashInsights" class="insight-list"></div>
+            </article>
+            <article class="surface span-5">
+              <div class="surface-head"><div><span class="section-kicker">Comparación</span><h3>Desempeño por base</h3></div><button class="link-button" onclick="location.hash='#analitica'">Explorar</button></div>
+              <div id="dashBaseRanking" class="ranking-list"></div>
+            </article>
+            <article class="surface span-4">
+              <div class="surface-head"><div><span class="section-kicker">Riesgo</span><h3>Alertas prioritarias</h3></div></div>
+              <div id="dashAlerts" class="alert-list"></div>
+            </article>
+            <article class="surface span-3">
+              <div class="surface-head"><div><span class="section-kicker">Confianza</span><h3>Calidad de datos</h3></div></div>
+              <div id="dashQuality" class="quality-panel"></div>
+            </article>
+            <article class="surface span-12">
+              <div class="surface-head"><div><span class="section-kicker">Actividad reciente</span><h3>Últimos movimientos</h3></div><button class="link-button" onclick="location.hash='#registros'">Ver registros</button></div>
+              <div id="dashRecent" class="activity-grid"></div>
+            </article>
+          </div>
         </section>
 
-        <!-- ================= VISTA: ASISTENCIAS ================= -->
-        <section id="view-asistencias" class="tdc-view">
-            <div class="page-intro"><div><span class="eyebrow">OPERACIÓN</span><h2>Registros</h2><p>Consulta, corrige, importa y exporta información de capacitación.</p></div></div>
-
-            <!-- PANEL DE ESTADO / ACCIONES -->
-            <div class="card card-custom p-3">
-                <div class="row align-items-center text-center text-md-start">
-                    <div class="col-md-3 mb-2 mb-md-0">
-                        <small class="text-muted d-block">Estado de conexión</small>
-                        <span id="connectionBadge" class="fw-bold text-secondary">
-                            <span class="status-dot status-loading"></span> Conectando...
-                        </span>
-                    </div>
-                    <div class="col-md-3 mb-2 mb-md-0">
-                        <small class="text-muted d-block">Total de registros en la nube</small>
-                        <span id="totalRecords" class="fw-bold fs-5 text-dark mono">0</span>
-                        <small class="text-muted d-block" id="lastUpdated"></small>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <button class="btn btn-sm btn-outline-navy me-1" id="btnActualizarDatos" onclick="actualizarDatos()">
-                            <i class="fa-solid fa-arrows-rotate me-1"></i> Actualizar datos
-                        </button>
-                        <button class="btn btn-sm btn-outline-success me-1" onclick="exportarExcel()">
-                            <i class="fa-solid fa-file-excel me-1"></i> Exportar filtro
-                        </button>
-                        <button class="btn btn-sm btn-outline-navy me-1" data-bs-toggle="modal" data-bs-target="#modalCargaMasiva">
-                            <i class="fa-solid fa-file-arrow-up me-1"></i> Carga masiva
-                        </button>
-                        <button class="btn btn-sm btn-navy" onclick="abrirModalNuevo()">
-                            <i class="fa-solid fa-plus me-1"></i> Nuevo registro
-                        </button>
-                    </div>
-                </div>
-                <div id="loadErrorPanel" class="d-none mt-3 pt-3" style="border-top:1px solid var(--line);"></div>
+        <section id="view-registros" class="tdc-view">
+          <div class="view-toolbar">
+            <div><span class="section-kicker">Fuente operativa</span><h2>Registro maestro</h2><p><strong id="totalRecords">0</strong> registros sincronizados con Firebase.</p></div>
+            <div class="toolbar-actions">
+              <button class="command-button secondary" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i>Exportar</button>
+              <button class="command-button secondary" data-bs-toggle="modal" data-bs-target="#modalCargaMasiva"><i class="fa-solid fa-file-arrow-up"></i>Importar</button>
             </div>
-
-            <!-- TABLA -->
-            <div class="card card-custom p-3">
-                <div class="desktop-table-wrap table-responsive">
-                    <table class="table table-hover table-striped border align-middle mb-0" id="asistenciasTable">
-                        <thead class="table-dark-custom">
-                            <tr>
-                                <th style="width:36px"><input type="checkbox" class="form-check-input" id="selectAllCheckbox" onclick="toggleSelectAll(this)"></th>
-                                <th>Acciones</th>
-                                <th data-sort="ID">ID</th>
-                                <th data-sort="NOMBRES">Colaborador</th>
-                                <th data-sort="CURSO">Curso</th>
-                                <th data-sort="PROGRAMA">Programa</th>
-                                <th data-sort="FECHA">Fecha</th>
-                                <th data-sort="BASE">Base</th>
-                                <th data-sort="HORA">Hora</th>
-                                <th data-sort="GRUPO">Grupo</th>
-                                <th data-sort="INSTRUCTOR">Instructor</th>
-                                <th data-sort="ASISTIO">Asistió</th>
-                                <th data-sort="NOTA">Nota</th>
-                                <th data-sort="OBSERVACION">Observación</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr><td colspan="14" class="text-center py-4 text-muted tdc-loading-row"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando registros desde la nube...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div id="mobileCards" class="mobile-cards"></div>
-
-                <div class="table-pager">
-                    <span class="pager-info" id="pagerInfo"></span>
-                    <span class="pager-controls">
-                        <select id="pagerSize" class="form-select form-select-sm pager-size">
-                            <option value="25">25 por página</option>
-                            <option value="50">50 por página</option>
-                            <option value="100">100 por página</option>
-                            <option value="todos">Todos</option>
-                        </select>
-                        <button type="button" class="pager-btn" id="pagerPrev" aria-label="Página anterior"><i class="fa-solid fa-chevron-left"></i></button>
-                        <button type="button" class="pager-btn" id="pagerNext" aria-label="Página siguiente"><i class="fa-solid fa-chevron-right"></i></button>
-                    </span>
-                </div>
-
-                <!-- BARRA DE ACCIONES MASIVAS -->
-                <div class="bulk-bar" id="bulkBar">
-                    <div>
-                        <span class="chip-count me-2"><span id="bulkCount">0</span> seleccionados</span>
-                        <button class="btn btn-sm btn-link text-white text-decoration-none" onclick="limpiarSeleccion()">Limpiar selección</button>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-light me-2" onclick="abrirEdicionMasiva()">
-                            <i class="fa-solid fa-pen-to-square me-1"></i> Edición masiva
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="eliminarSeleccionados()">
-                            <i class="fa-solid fa-trash me-1"></i> Eliminar seleccionados
-                        </button>
-                    </div>
-                </div>
+          </div>
+          <div class="surface data-surface">
+            <div class="desktop-table-wrap table-responsive">
+              <table class="enterprise-table" id="asistenciasTable">
+                <thead><tr>
+                  <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)"></th><th>Acciones</th>
+                  <th data-sort="ID">ID</th><th data-sort="NOMBRES">Colaborador</th><th data-sort="CURSO">Curso</th><th data-sort="PROGRAMA">Programa</th><th data-sort="FECHA">Fecha</th><th data-sort="BASE">Base</th><th data-sort="HORA">Hora</th><th data-sort="GRUPO">Grupo</th><th data-sort="INSTRUCTOR">Instructor</th><th data-sort="ASISTIO">Asistió</th><th data-sort="NOTA">Nota</th><th data-sort="OBSERVACION">Observación</th>
+                </tr></thead>
+                <tbody id="tableBody"><tr><td colspan="14" class="empty-cell">Cargando registros…</td></tr></tbody>
+              </table>
             </div>
+            <div id="mobileCards" class="mobile-cards"></div>
+            <div class="table-pager"><span id="pagerInfo"></span><div><select id="pagerSize" class="form-select form-select-sm"><option value="25">25 por página</option><option value="50">50 por página</option><option value="100">100 por página</option></select><button id="pagerPrev" class="icon-button"><i class="fa-solid fa-chevron-left"></i></button><button id="pagerNext" class="icon-button"><i class="fa-solid fa-chevron-right"></i></button></div></div>
+            <div class="bulk-bar" id="bulkBar"><span><strong id="bulkCount">0</strong> seleccionados</span><button class="link-button light" onclick="limpiarSeleccion()">Limpiar</button><button class="command-button secondary" onclick="abrirEdicionMasiva()">Editar selección</button><button class="command-button danger" onclick="eliminarSeleccionados()">Eliminar</button></div>
+          </div>
         </section>
 
-        <!-- ================= VISTA: COLABORADORES ================= -->
-        <section id="view-colaboradores" class="tdc-view">
-            <div class="page-intro"><div><span class="eyebrow">PERSONAS</span><h2>Colaboradores</h2><p>Vista consolidada por persona e historial de formación.</p></div></div>
-            <div id="colabKpis" class="kpi-strip mb-3"></div>
-            <div class="card card-custom p-3">
-                <div class="table-responsive" style="max-height:60vh;">
-                    <table class="table table-hover border align-middle mb-0">
-                        <thead class="table-dark-custom">
-                            <tr>
-                                <th>Nombre</th><th>ID</th><th>Cargo</th><th>Base</th><th>Correo</th><th>Cursos</th><th>Asist. / Inasist.</th><th>Estado</th><th>Último curso</th>
-                            </tr>
-                        </thead>
-                        <tbody id="colaboradoresTbody">
-                            <tr><td colspan="9" class="text-center py-4 text-muted tdc-loading-row"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <section id="view-personas" class="tdc-view">
+          <div class="view-toolbar"><div><span class="section-kicker">Talento</span><h2>Personas</h2><p>Historial, vigencias y señales de seguimiento por colaborador.</p></div><div id="personKpis" class="compact-kpis"></div></div>
+          <div class="surface data-surface"><div class="table-responsive"><table class="enterprise-table"><thead><tr><th>Colaborador</th><th>ID</th><th>Base</th><th>Cursos</th><th>Asistencia</th><th>Estado</th><th>Última actividad</th></tr></thead><tbody id="personasTbody"></tbody></table></div><div class="simple-pager" id="personPager"></div></div>
         </section>
 
-        <!-- ================= VISTA: CURSOS ================= -->
         <section id="view-cursos" class="tdc-view">
-            <div class="page-intro"><div><span class="eyebrow">CATÁLOGO</span><h2>Cursos</h2><p>Desempeño, cobertura y participación por curso.</p></div></div>
-            <div class="card card-custom p-3">
-                <div class="table-responsive" style="max-height:60vh;">
-                    <table class="table table-hover border align-middle mb-0">
-                        <thead class="table-dark-custom">
-                            <tr>
-                                <th>Curso</th><th>Programa</th><th>Grupos</th><th>Personas</th><th>Asistieron</th><th>No asistieron</th><th>Promedio</th><th>Bases</th><th>Instructores</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cursosTbody">
-                            <tr><td colspan="9" class="text-center py-4 text-muted tdc-loading-row"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+          <div class="view-toolbar"><div><span class="section-kicker">Portafolio</span><h2>Cursos</h2><p>Comparación de cobertura, asistencia y calidad académica.</p></div></div>
+          <div id="courseCards" class="entity-grid"></div>
         </section>
 
-        <!-- ================= VISTA: GRUPOS ================= -->
         <section id="view-grupos" class="tdc-view">
-            <div class="page-intro"><div><span class="eyebrow">OPERACIÓN</span><h2>Grupos</h2><p>Seguimiento por fecha, instructor y asistencia.</p></div></div>
-            <div class="card card-custom p-3">
-                <div class="table-responsive" style="max-height:60vh;">
-                    <table class="table table-hover border align-middle mb-0">
-                        <thead class="table-dark-custom">
-                            <tr>
-                                <th>Grupo</th><th>Curso</th><th>Fecha</th><th>Instructor</th><th>Registros</th><th>Asist. / Inasist.</th><th>% Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gruposTbody">
-                            <tr><td colspan="7" class="text-center py-4 text-muted tdc-loading-row"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+          <div class="view-toolbar"><div><span class="section-kicker">Ejecución</span><h2>Grupos</h2><p>Seguimiento de cohortes, participación y responsables.</p></div></div>
+          <div id="groupCards" class="entity-grid"></div>
         </section>
 
-        <!-- ================= DETALLE: GRUPO / CURSO ================= -->
-        <section id="view-grupo" class="tdc-view"><div id="grupoDetalleContent"></div></section>
-        <section id="view-curso" class="tdc-view"><div id="cursoDetalleContent"></div></section>
-
-        <!-- ================= VISTA: TENDENCIAS ================= -->
         <section id="view-analitica" class="tdc-view">
-            <div class="page-intro"><div><span class="eyebrow">ANALÍTICA</span><h2>Tendencias y desempeño</h2><p>Análisis que complementa el Resumen sin repetir sus indicadores.</p></div></div>
-            <div id="analyticsSummary" class="analytics-summary"></div>
-            <div class="analytics-layout">
-                <section class="panel analytics-hero"><div class="panel-head"><div><span class="panel-kicker">EVOLUCIÓN</span><h3>Porcentaje de asistencia en el tiempo</h3></div></div><div class="chart-box chart-tall"><canvas id="chartEvolucion"></canvas></div></section>
-                <aside class="panel insights-panel"><div class="panel-head"><div><span class="panel-kicker">HALLAZGOS</span><h3>Lo que merece atención</h3></div></div><div id="analyticsInsights"></div></aside>
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">RANKING</span><h3>Cursos con mayor volumen</h3></div></div><div class="chart-box"><canvas id="chartPorCurso"></canvas></div></section>
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">INSTRUCTORES</span><h3>Asistencia por instructor</h3></div></div><div class="chart-box"><canvas id="chartPorInstructor"></canvas></div></section>
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">RESULTADOS</span><h3>Distribución de notas</h3></div></div><div class="chart-box"><canvas id="chartNotas"></canvas></div></section>
-                <section class="panel"><div class="panel-head"><div><span class="panel-kicker">EJECUCIÓN</span><h3>Horas por semestre</h3></div></div><div class="chart-box"><canvas id="chartHorasPeriodo"></canvas></div></section>
-            </div>
+          <div class="view-toolbar"><div><span class="section-kicker">Modelo analítico</span><h2>Analítica comparativa</h2><p>Los gráficos consumen agregados precalculados y se cargan al entrar.</p></div><div class="compare-control"><label for="analysisDimension">Comparar por</label><select id="analysisDimension" class="form-select"><option value="curso">Curso</option><option value="base">Base</option><option value="instructor">Instructor</option><option value="grupo">Grupo</option></select></div></div>
+          <div id="analysisKpis" class="metric-grid compact"></div>
+          <div class="analytics-grid">
+            <article class="surface span-8"><div class="surface-head"><div><span class="section-kicker">Evolución</span><h3>Tendencia de asistencia</h3></div></div><div class="chart-frame"><canvas id="analysisTrend"></canvas></div></article>
+            <article class="surface span-4"><div class="surface-head"><div><span class="section-kicker">Distribución</span><h3>Asistencia global</h3></div></div><div class="chart-frame"><canvas id="analysisAttendance"></canvas></div></article>
+            <article class="surface span-7"><div class="surface-head"><div><span class="section-kicker">Ranking</span><h3 id="analysisCompareTitle">Comparación por curso</h3></div></div><div class="chart-frame chart-tall"><canvas id="analysisComparison"></canvas></div></article>
+            <article class="surface span-5"><div class="surface-head"><div><span class="section-kicker">Matriz</span><h3>Volumen vs asistencia</h3></div></div><div id="analysisMatrix" class="matrix-list"></div></article>
+            <article class="surface span-6"><div class="surface-head"><div><span class="section-kicker">Formación</span><h3>Horas por periodo</h3></div></div><div class="chart-frame"><canvas id="analysisHours"></canvas></div></article>
+            <article class="surface span-6"><div class="surface-head"><div><span class="section-kicker">Resultados</span><h3>Distribución de notas</h3></div></div><div class="chart-frame"><canvas id="analysisGrades"></canvas></div></article>
+          </div>
         </section>
-
+      </div>
     </main>
+  </div>
 
-    <!-- ================= PERFIL DE COLABORADOR (overlay) ================= -->
-    <div id="profileOverlay" class="profile-overlay">
-        <div class="profile-panel">
-            <div id="profileContent"></div>
-        </div>
-    </div>
-    <input type="file" id="docFileInput" class="d-none" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.csv,.zip">
+  <div id="profileOverlay" class="drawer-overlay"><aside class="entity-drawer profile-panel"><div id="profileContent"></div></aside></div>
+  <div id="entityOverlay" class="drawer-overlay"><aside class="entity-drawer"><div id="entityContent"></div></aside></div>
+  <input type="file" id="docFileInput" class="d-none" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.csv,.zip">
+  <div id="cargaResultado"></div>
 
-    <!-- ================= MODAL: NUEVO / EDITAR ================= -->
-    <div class="modal fade" id="modalRegistro" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background:var(--navy-900); color:white;">
-                    <h5 class="modal-title" id="modalTitle">Registro de Capacitación</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="formErrors" class="mb-2" style="color:var(--dg-red); font-size:0.82rem;"></div>
-                    <form id="registroForm">
-                        <input type="hidden" id="recordDocId">
-                        <div class="row g-2">
-                            <div class="col-md-3"><label class="form-label">ID / Cédula *</label><input type="text" id="field_ID" class="form-control" required></div>
-                            <div class="col-md-5"><label class="form-label">Nombres y Apellidos *</label><input type="text" id="field_NOMBRES" class="form-control" required></div>
-                            <div class="col-md-4"><label class="form-label">Programa</label><input type="text" id="field_PROGRAMA" class="form-control"></div>
+  <div class="modal fade" id="modalRegistro" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><span class="section-kicker">Gestión de datos</span><h5 class="modal-title" id="modalTitle">Registro de capacitación</h5></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="formErrors" class="form-errors"></div><form id="registroForm"><input type="hidden" id="recordDocId"><div class="form-grid">
+    <label>ID / Cédula *<input id="field_ID" class="form-control" required></label><label class="span-2">Nombres y apellidos *<input id="field_NOMBRES" class="form-control" required></label><label>Programa<input id="field_PROGRAMA" class="form-control"></label>
+    <label class="span-2">Curso<input id="field_CURSO" class="form-control"></label><label>Fecha<input type="date" id="field_FECHA" class="form-control"></label><label>Intensidad<input id="field_INTENSIDAD" class="form-control"></label>
+    <label>Base<input id="field_BASE" class="form-control"></label><label>Hora<input id="field_HORA" class="form-control"></label><label>Salón<input id="field_SALON" class="form-control"></label><label>Grupo<input id="field_GRUPO" class="form-control"></label>
+    <label>Cargo<input id="field_CARGO" class="form-control"></label><label class="span-2">Correo<input type="email" id="field_CORREO" class="form-control"></label><label>Instructor<input id="field_INSTRUCTOR" class="form-control"></label>
+    <label>Asistió<select id="field_ASISTIO" class="form-select"><option>SÍ</option><option>NO</option></select></label><label>Nota<input id="field_NOTA" class="form-control"></label><label class="span-2">Observación<input id="field_OBSERVACION" class="form-control"></label>
+  </div></form></div><div class="modal-footer"><button class="command-button secondary" data-bs-dismiss="modal">Cancelar</button><button class="command-button primary" onclick="guardarRegistro()">Guardar registro</button></div></div></div></div>
 
-                            <div class="col-md-6"><label class="form-label">Curso</label><input type="text" id="field_CURSO" class="form-control" placeholder="Básico Inicial, Recurrente..."></div>
-                            <div class="col-md-3"><label class="form-label">Fecha</label><input type="date" id="field_FECHA" class="form-control"></div>
-                            <div class="col-md-3"><label class="form-label">Intensidad</label><input type="text" id="field_INTENSIDAD" class="form-control" placeholder="8 horas"></div>
+  <div class="modal fade" id="modalCargaMasiva" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>Importar Excel o CSV</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="text-muted">El archivo se valida y clasifica antes de escribir en Firebase.</p><input type="file" id="excelFileInput" class="form-control" accept=".xlsx,.xls,.csv"><div id="bulkStatus" class="mt-3"></div></div><div class="modal-footer"><button class="command-button secondary" data-bs-dismiss="modal">Cancelar</button><button class="command-button primary" onclick="procesarCargaMasiva()">Validar archivo</button></div></div></div></div>
 
-                            <div class="col-md-3"><label class="form-label">Base</label><input type="text" id="field_BASE" class="form-control" placeholder="BOG, MDE, ADZ..."></div>
-                            <div class="col-md-3"><label class="form-label">Hora</label><input type="text" id="field_HORA" class="form-control"></div>
-                            <div class="col-md-3"><label class="form-label">Salón</label><input type="text" id="field_SALON" class="form-control"></div>
-                            <div class="col-md-3"><label class="form-label">Grupo</label><input type="text" id="field_GRUPO" class="form-control" placeholder="GRUPO SI-AGO 02"></div>
+  <div class="modal fade" id="modalValidacion" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5>Validación de carga</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p id="valComentario"></p><div class="validation-metrics"><span>Total <strong id="valTotal">0</strong></span><span>Nuevos <strong id="valNuevos">0</strong></span><span>Actualizan <strong id="valActualizar">0</strong></span><span>Sin cambios <strong id="valSinCambios">0</strong></span><span>Duplicados <strong id="valDuplicados">0</strong></span><span>Errores <strong id="valErrores">0</strong></span></div><ul class="nav nav-tabs"><li><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#prevNuevos"><span id="tabNuevos">Nuevos</span></button></li><li><button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevActualizar"><span id="tabActualizar">Actualizarán</span></button></li><li><button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevSinCambios"><span id="tabSinCambios">Sin cambios</span></button></li><li><button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevErrores"><span id="tabErrores">Errores</span></button></li></ul><div class="tab-content preview-tables"><div class="tab-pane show active" id="prevNuevos"><table><tbody id="prevTableNuevos"></tbody></table></div><div class="tab-pane" id="prevActualizar"><table><tbody id="prevTableActualizar"></tbody></table></div><div class="tab-pane" id="prevSinCambios"><table><tbody id="prevTableSinCambios"></tbody></table></div><div class="tab-pane" id="prevErrores"><table><tbody id="prevTableErrores"></tbody></table></div></div></div><div class="modal-footer"><button class="command-button secondary" onclick="descargarReporteErrores()">Descargar errores</button><button class="command-button secondary" data-bs-dismiss="modal">Cancelar</button><button id="btnConfirmarSubida" class="command-button primary" onclick="confirmarSubidaValidos()">Confirmar carga</button></div></div></div></div>
 
-                            <div class="col-md-4"><label class="form-label">Cargo</label><input type="text" id="field_CARGO" class="form-control"></div>
-                            <div class="col-md-4"><label class="form-label">Correo</label><input type="email" id="field_CORREO" class="form-control"></div>
-                            <div class="col-md-4"><label class="form-label">Instructor</label><input type="text" id="field_INSTRUCTOR" class="form-control"></div>
+  <div class="modal fade" id="modalEdicionMasiva" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5>Edición masiva · <span id="bulkEditCount">0</span> registros</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formEdicionMasiva"><div class="bulk-form-grid">
+    <label><input type="checkbox" class="bulk-field-toggle" data-campo="INSTRUCTOR" data-target="bulk_INSTRUCTOR" onchange="toggleBulkField(this)"> Instructor<input id="bulk_INSTRUCTOR" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="FECHA" data-target="bulk_FECHA" onchange="toggleBulkField(this)"> Fecha<input type="date" id="bulk_FECHA" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="HORA" data-target="bulk_HORA" onchange="toggleBulkField(this)"> Hora<input id="bulk_HORA" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="SALON" data-target="bulk_SALON" onchange="toggleBulkField(this)"> Salón<input id="bulk_SALON" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="GRUPO" data-target="bulk_GRUPO" onchange="toggleBulkField(this)"> Grupo<input id="bulk_GRUPO" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="BASE" data-target="bulk_BASE" onchange="toggleBulkField(this)"> Base<input id="bulk_BASE" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="CURSO" data-target="bulk_CURSO" onchange="toggleBulkField(this)"> Curso<input id="bulk_CURSO" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="PROGRAMA" data-target="bulk_PROGRAMA" onchange="toggleBulkField(this)"> Programa<input id="bulk_PROGRAMA" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="ASISTIO" data-target="bulk_ASISTIO" onchange="toggleBulkField(this)"> Asistió<select id="bulk_ASISTIO" class="form-select" disabled><option>SÍ</option><option>NO</option></select></label>
+  </div></form></div><div class="modal-footer"><button class="command-button secondary" data-bs-dismiss="modal">Cancelar</button><button class="command-button primary" onclick="aplicarEdicionMasiva()">Aplicar cambios</button></div></div></div></div>
 
-                            <div class="col-md-3"><label class="form-label">Asistió</label>
-                                <select id="field_ASISTIO" class="form-select">
-                                    <option value="SÍ">SÍ</option>
-                                    <option value="NO">NO</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3"><label class="form-label">Nota</label><input type="text" id="field_NOTA" class="form-control"></div>
-                            <div class="col-md-6"><label class="form-label">Observación</label><input type="text" id="field_OBSERVACION" class="form-control"></div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-navy" onclick="guardarRegistro()">Guardar registro</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= MODAL: CARGA MASIVA ================= -->
-    <div class="modal fade" id="modalCargaMasiva" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" style="background:var(--navy-900); color:white;">
-                    <h5 class="modal-title"><i class="fa-solid fa-file-arrow-up me-2"></i>Carga masiva desde Excel/CSV</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small">
-                        El archivo se procesa como <strong>UPSERT inteligente</strong>: se normalizan cédulas,
-                        se buscan coincidencias por <strong>CÉDULA + CURSO</strong> y se muestra un resumen de
-                        <strong>nuevos / actualizarán / sin cambios / errores</strong> antes de tocar la base.
-                    </p>
-                    <input type="file" id="excelFileInput" class="form-control mb-3" accept=".xlsx, .xls, .csv">
-                    <div id="bulkStatus" class="text-muted small"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-navy" onclick="procesarCargaMasiva()"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Validar archivo</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= MODAL: PREVISUALIZACIÓN DE CARGA (VALIDAR → CONFIRMAR) ================= -->
-    <div class="modal fade" id="modalValidacion" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header" style="background:var(--navy-900); color:white;">
-                    <h5 class="modal-title"><i class="fa-solid fa-list-check me-2"></i>Validación de carga</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-2" id="valComentario">
-                        Revisa la clasificación. Nada se modifica hasta que confirmes la carga.
-                    </p>
-                    <div class="row g-2 mb-3 text-center carga-summary-grid">
-                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valTotal">0</div><div class="kpi-label">En archivo</div></div></div></div>
-                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valNuevos" style="color:var(--dg-teal)">0</div><div class="kpi-label">Nuevos</div></div></div></div>
-                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valActualizar" style="color:var(--dg-orange)">0</div><div class="kpi-label">Actualizarán</div></div></div></div>
-                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valSinCambios" style="color:var(--ink-600)">0</div><div class="kpi-label">Sin cambios</div></div></div></div>
-                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valDuplicados" style="color:var(--dg-yellow)">0</div><div class="kpi-label">Duplicados detectados</div></div></div></div>
-                        <div class="col-6 col-md-2"><div class="kpi-card justify-content-center"><div><div class="kpi-value" id="valErrores" style="color:var(--dg-red)">0</div><div class="kpi-label">Con error</div></div></div></div>
-                    </div>
-
-                    <ul class="nav nav-tabs preview-tabs mb-2" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#prevNuevos" type="button" role="tab">
-                                <i class="fa-solid fa-plus me-1"></i><span id="tabNuevos">Nuevos (0)</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevActualizar" type="button" role="tab">
-                                <i class="fa-solid fa-arrows-rotate me-1"></i><span id="tabActualizar">Actualizarán (0)</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevSinCambios" type="button" role="tab">
-                                <i class="fa-solid fa-check me-1"></i><span id="tabSinCambios">Sin cambios (0)</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prevErrores" type="button" role="tab">
-                                <i class="fa-solid fa-triangle-exclamation me-1"></i><span id="tabErrores">Errores (0)</span>
-                            </button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="prevNuevos" role="tabpanel">
-                            <div class="table-responsive" style="max-height:38vh;">
-                                <table class="table table-sm">
-                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
-                                    <tbody id="prevTableNuevos"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="prevActualizar" role="tabpanel">
-                            <div class="table-responsive" style="max-height:38vh;">
-                                <table class="table table-sm">
-                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
-                                    <tbody id="prevTableActualizar"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="prevSinCambios" role="tabpanel">
-                            <div class="table-responsive" style="max-height:38vh;">
-                                <table class="table table-sm">
-                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
-                                    <tbody id="prevTableSinCambios"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="prevErrores" role="tabpanel">
-                            <div class="table-responsive" style="max-height:38vh;">
-                                <table class="table table-sm">
-                                    <thead class="table-dark-custom"><tr><th>Fila</th><th>ID</th><th>Nombres</th><th>Curso</th><th>Fecha</th><th>Grupo</th><th>Motivo</th></tr></thead>
-                                    <tbody id="prevTableErrores"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-danger" onclick="descargarReporteErrores()">
-                        <i class="fa-solid fa-file-arrow-down me-1"></i> Descargar errores
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" id="btnConfirmarSubida" class="btn btn-navy" onclick="confirmarSubidaValidos()">
-                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Confirmar carga
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= CONTENEDOR: RESULTADO DE CARGA MASIVA ================= -->
-    <div id="cargaResultado" class="container-fluid px-4"></div>
-
-    <!-- ================= MODAL: EDICIÓN MASIVA ================= -->
-    <div class="modal fade" id="modalEdicionMasiva" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background:var(--navy-900); color:white;">
-                    <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Edición masiva — <span id="bulkEditCount">0</span> registro(s)</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small">Activa la casilla de cada campo que quieras sobrescribir en todos los registros seleccionados. Los campos no activados permanecerán sin cambios.</p>
-                    <form id="formEdicionMasiva">
-                        <div class="row g-3">
-
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="INSTRUCTOR" data-target="bulk_INSTRUCTOR" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Instructor</label><input type="text" id="bulk_INSTRUCTOR" class="form-control" disabled></div>
-                            </div>
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="FECHA" data-target="bulk_FECHA" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Fecha</label><input type="date" id="bulk_FECHA" class="form-control" disabled></div>
-                            </div>
-
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="HORA" data-target="bulk_HORA" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Hora</label><input type="text" id="bulk_HORA" class="form-control" disabled></div>
-                            </div>
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="SALON" data-target="bulk_SALON" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Salón</label><input type="text" id="bulk_SALON" class="form-control" disabled></div>
-                            </div>
-
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="GRUPO" data-target="bulk_GRUPO" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Grupo</label><input type="text" id="bulk_GRUPO" class="form-control" disabled></div>
-                            </div>
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="BASE" data-target="bulk_BASE" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Base</label><input type="text" id="bulk_BASE" class="form-control" disabled></div>
-                            </div>
-
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="CURSO" data-target="bulk_CURSO" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Curso</label><input type="text" id="bulk_CURSO" class="form-control" disabled></div>
-                            </div>
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="PROGRAMA" data-target="bulk_PROGRAMA" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Programa</label><input type="text" id="bulk_PROGRAMA" class="form-control" disabled></div>
-                            </div>
-
-                            <div class="col-md-6 d-flex gap-2 align-items-center">
-                                <input type="checkbox" class="form-check-input bulk-field-toggle" data-campo="ASISTIO" data-target="bulk_ASISTIO" onchange="toggleBulkField(this)">
-                                <div class="flex-grow-1"><label class="form-label mb-0">Asistió</label>
-                                    <select id="bulk_ASISTIO" class="form-select" disabled>
-                                        <option value="SÍ">SÍ</option>
-                                        <option value="NO">NO</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-navy" onclick="aplicarEdicionMasiva()">
-                        <i class="fa-solid fa-check me-1"></i> Aplicar a seleccionados
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/theme.js"></script>
-    <script type="module" src="assets/js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/theme.js"></script>
+  <script type="module" src="assets/js/app.js?v=2"></script>
 </body>
 </html>

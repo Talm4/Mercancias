@@ -22,6 +22,7 @@ let sortKey = "FECHA";
 let sortDir = -1;
 let page = 1;
 let pageSize = 25;
+let sortedCache = { key: "", rows: [] };
 
 const COLUMNAS = [
   { key: "ID", label: "ID" },
@@ -38,7 +39,7 @@ const COLUMNAS = [
   { key: "OBSERVACION", label: "Observación" },
 ];
 
-let modalRegistro, modalCargaMasiva, modalEdicionMasiva, modalValidacion, modalDocumento;
+let modalRegistro, modalCargaMasiva, modalEdicionMasiva, modalValidacion;
 
 export function initAsistencias() {
   modalRegistro = new bootstrap.Modal(document.getElementById("modalRegistro"));
@@ -95,8 +96,11 @@ function ordena(regA, regB, key) {
 }
 
 function ordenar(data) {
+  const key = `${store.currentFilterKey}|${sortKey}|${sortDir}`;
+  if (sortedCache.key === key) return sortedCache.rows;
   const copia = [...data];
   copia.sort((a, b) => ordena(a, b, sortKey) * sortDir);
+  sortedCache = { key, rows: copia };
   return copia;
 }
 
@@ -126,7 +130,6 @@ function renderTbody(slice, estado) {
   }
 
   tbody.innerHTML = slice.map(item => {
-    const esSi = (item.ASISTIO || "SÍ").toUpperCase() !== "NO";
     const checked = selectedIds.has(item._docId) ? "checked" : "";
     const rowClass = selectedIds.has(item._docId) ? "row-selected" : "";
     const cells = COLUMNAS.map(c => filaCelda(item, c.key)).join("");
@@ -253,7 +256,7 @@ window.abrirModalNuevo = function () {
 };
 
 window.editarRegistro = function (docId) {
-  const item = store.data.find(d => d._docId === docId);
+  const item = store.getRecord(docId);
   if (!item) return;
   document.getElementById("recordDocId").value = docId;
   CAMPOS.forEach(campo => {
@@ -302,7 +305,7 @@ window.guardarRegistro = async function () {
       //   - Existe vigente  → ACTUALIZA ese registro (nunca duplica).
       //   - Vencido o nunca → CREA un registro nuevo (conserva historial).
       const hoy = store.estadoHoy;
-      const similar = store.data.find(e =>
+      const similar = store.getPerson(dataObj.ID).find(e =>
         normalizarCedula(e.ID) === dataObj.ID &&
         (e.CURSO || "").trim().toUpperCase() === (dataObj.CURSO || "").trim().toUpperCase()
       );
@@ -330,7 +333,7 @@ window.guardarRegistro = async function () {
 };
 
 window.eliminarRegistro = async function (docId) {
-  const item = store.data.find(d => d._docId === docId);
+  const item = store.getRecord(docId);
   if (!item) return;
   if (!confirm(`¿Eliminar el registro de "${item.NOMBRES || "sin nombre"}"? Esta acción no se puede deshacer.`)) return;
   try {
@@ -487,7 +490,7 @@ window.procesarCargaMasiva = function () {
         if (f.erroresFinal.length > 0) {
           return { ...f, accion: "error", objetivo: null, clase: null };
         }
-        const { accion, objetivo, motivo } = clasificarRegistro(f.rec, store.data, store.estadoHoy);
+        const { accion, objetivo, motivo } = clasificarRegistro(f.rec, store.getPerson(f.rec.ID), store.estadoHoy);
         return { ...f, accion, objetivo, motivo };
       });
 

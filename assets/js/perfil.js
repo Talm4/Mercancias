@@ -37,7 +37,9 @@ export function cerrarPerfil() {
 export function renderPerfil(s) {
   if (!currentPersonId || !overlay().classList.contains("open")) return;
 
-  const persona = agregarPorPersona(s.data).find(p => p.ID === currentPersonId || p.key === currentPersonId);
+  const direct = s.getPerson(currentPersonId);
+  const fallback = direct.length ? direct : s.data.filter(r => r.ID === currentPersonId);
+  const persona = agregarPorPersona(fallback)[0];
   const cont = document.getElementById("profileContent");
   if (!cont) return;
 
@@ -225,7 +227,7 @@ async function handleDocFileChange(input) {
   const file = input.files[0];
   if (!file) return;
   const personaId = input.dataset.persona;
-  const persona = agregarPorPersona(store.data).find(p => p.ID === personaId);
+  const persona = agregarPorPersona(store.getPerson(personaId))[0];
   try {
     showToast("Subiendo documento...", "info");
     await subirDocumento(personaId, persona ? persona.NOMBRES : "", file);

@@ -1,226 +1,87 @@
-// ==========================================================================
-// TALMA DATA CENTER — Barra de filtros compartida (chips + resumen)
-// ==========================================================================
 import { store } from "./store.js";
-import { uniqueSorted, debounce } from "./utils.js";
-import { resumen } from "./agregados.js";
+import { debounce } from "./utils.js";
+import { escapeHtml } from "./ui.js";
 
-const SELECTS = [
-  { id: "filtroBase", campo: "BASE" },
-  { id: "filtroGrupo", campo: "GRUPO" },
-  { id: "filtroCurso", campo: "CURSO" },
-  { id: "filtroSalon", campo: "SALON" },
-  { id: "filtroInstructor", campo: "INSTRUCTOR" },
-];
+const selectMap = { filtroBase: "base", filtroGrupo: "grupo", filtroCurso: "curso", filtroInstructor: "instructor", filtroSalon: "salon" };
+let optionsVersion = -1;
 
-const CLAVES_NORMALIZADA = {
-  busqueda: "busqueda", desde: "desde", hasta: "hasta",
-  semestre: "semestre", asistio: "asistio",
-  filtroBase: "base", filtroGrupo: "grupo", filtroCurso: "curso",
-  filtroInstructor: "instructor", filtroSalon: "salon",
-  filtroEstado: "estado",
-};
-
-let invFiltros = null;
 export function initFiltros() {
-  const barra = document.getElementById("filtroBarContainer");
-  if (!barra) return;
-  barra.innerHTML = `
-    <div class="filter-bar">
-      <div class="fb-item fb-search">
-        <label class="filter-label">Buscar</label>
-        <input type="text" id="searchInput" class="form-control" placeholder="Cédula, nombre, correo, curso, grupo, base...">
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Base</label>
-        <select id="filtroBase" class="form-select"><option value="">Todas</option></select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Grupo</label>
-        <select id="filtroGrupo" class="form-select"><option value="">Todos</option></select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Curso</label>
-        <select id="filtroCurso" class="form-select"><option value="">Todos</option></select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Asistencia</label>
-        <select id="filtroAsistio" class="form-select">
-          <option value="">Todas</option><option value="SÍ">Asistió</option><option value="NO">No asistió</option>
-        </select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Estado</label>
-        <select id="filtroEstado" class="form-select">
-          <option value="">Todos</option>
-          <option value="VIGENTE">🟢 Vigente</option>
-          <option value="PRÓXIMO A VENCER">🟡 Próximo a vencer</option>
-          <option value="VENCIDO">🔴 Vencido</option>
-          <option value="SIN FECHA">⚪ Sin fecha</option>
-        </select>
-      </div>
-      <div class="fb-item">
-        <button class="btn btn-sm btn-outline-navy" id="toggleMasFiltros" type="button">
-          <i class="fa-solid fa-sliders me-1"></i> Más filtros
-        </button>
-      </div>
-      <div class="fb-item fb-search">
-        <label class="filter-label">&nbsp;</label>
-        <button class="btn btn-sm btn-outline-secondary w-100" id="btnLimpiarFiltros" type="button">
-          <i class="fa-solid fa-eraser me-1"></i> Limpiar filtros
-        </button>
-      </div>
+  const host = document.getElementById("filtroBarContainer");
+  host.innerHTML = `<div class="filter-shell">
+    <div class="filter-row">
+      <div class="search-control"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" class="form-control" placeholder="Buscar persona, cédula, curso, grupo o instructor" autocomplete="off"></div>
+      <select id="filtroBase" class="form-select filter-select" aria-label="Filtrar por base"><option value="">Todas las bases</option></select>
+      <select id="filtroCurso" class="form-select filter-select" aria-label="Filtrar por curso"><option value="">Todos los cursos</option></select>
+      <select id="filtroAsistio" class="form-select filter-select" aria-label="Filtrar asistencia"><option value="">Toda asistencia</option><option value="SÍ">Asistió</option><option value="NO">No asistió</option></select>
+      <button class="icon-button" id="toggleMasFiltros" title="Más filtros" aria-label="Más filtros"><i class="fa-solid fa-sliders"></i></button>
+      <button class="icon-button" id="btnLimpiarFiltros" title="Limpiar filtros" aria-label="Limpiar filtros"><i class="fa-solid fa-filter-circle-xmark"></i></button>
     </div>
-    <div class="filter-bar mt-2 d-none" id="masFiltrosBar">
-      <div class="fb-item">
-        <label class="filter-label">Desde</label>
-        <input type="date" id="filtroFechaDesde" class="form-control">
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Hasta</label>
-        <input type="date" id="filtroFechaHasta" class="form-control">
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Semestre</label>
-        <select id="filtroSemestre" class="form-select">
-          <option value="todos">Todos</option><option value="1">Semestre 1</option><option value="2">Semestre 2</option>
-        </select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Salón</label>
-        <select id="filtroSalon" class="form-select"><option value="">Todos</option></select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Instructor</label>
-        <select id="filtroInstructor" class="form-select"><option value="">Todos</option></select>
-      </div>
-      <div class="fb-item">
-        <label class="filter-label">Integridad</label>
-        <select id="filtroIntegridad" class="form-select">
-          <option value="">Todos</option>
-          <option value="duplicados">Solo duplicados</option>
-          <option value="revision">Solo pendientes de revisión</option>
-        </select>
-      </div>
+    <div class="filter-more" id="masFiltrosBar">
+      <input type="date" id="filtroFechaDesde" class="form-control filter-select" title="Desde">
+      <input type="date" id="filtroFechaHasta" class="form-control filter-select" title="Hasta">
+      <select id="filtroGrupo" class="form-select filter-select"><option value="">Todos los grupos</option></select>
+      <select id="filtroInstructor" class="form-select filter-select"><option value="">Todos los instructores</option></select>
+      <select id="filtroSalon" class="form-select filter-select"><option value="">Todos los salones</option></select>
+      <select id="filtroSemestre" class="form-select filter-select"><option value="todos">Todo el año</option><option value="1">Semestre 1</option><option value="2">Semestre 2</option></select>
+      <select id="filtroEstado" class="form-select filter-select"><option value="">Toda vigencia</option><option value="VIGENTE">Vigente</option><option value="PRÓXIMO A VENCER">Próximo a vencer</option><option value="VENCIDO">Vencido</option><option value="SIN FECHA">Sin fecha</option></select>
+      <select id="filtroIntegridad" class="form-select filter-select"><option value="">Toda calidad</option><option value="duplicados">Posibles duplicados</option><option value="revision">Requiere revisión</option></select>
     </div>
-    <div id="filterChips" class="filter-chips"></div>
-    <div id="filterSummary" class="filter-result-summary"></div>`;
+    <div class="filter-meta"><div id="filterChips"></div><div id="filterSummary" class="filter-summary"></div></div>
+  </div>`;
 
-  document.getElementById("toggleMasFiltros").addEventListener("click", () => {
-    document.getElementById("masFiltrosBar").classList.toggle("d-none");
+  const debouncedSearch = debounce(value => store.setFiltro("busqueda", value), 220);
+  document.getElementById("searchInput").addEventListener("input", e => debouncedSearch(e.target.value));
+  Object.entries(selectMap).forEach(([id, key]) => document.getElementById(id).addEventListener("change", e => store.setFiltro(key, e.target.value)));
+  document.getElementById("filtroAsistio").addEventListener("change", e => store.setFiltro("asistio", e.target.value));
+  document.getElementById("filtroFechaDesde").addEventListener("change", e => store.setFiltro("desde", e.target.value));
+  document.getElementById("filtroFechaHasta").addEventListener("change", e => store.setFiltro("hasta", e.target.value));
+  document.getElementById("filtroSemestre").addEventListener("change", e => store.setFiltro("semestre", e.target.value));
+  document.getElementById("filtroEstado").addEventListener("change", e => store.setFiltro("estado", e.target.value));
+  document.getElementById("filtroIntegridad").addEventListener("change", e => store.setFiltros({ soloDuplicados: e.target.value === "duplicados", soloRevision: e.target.value === "revision" }));
+  document.getElementById("toggleMasFiltros").addEventListener("click", () => document.getElementById("masFiltrosBar").classList.toggle("open"));
+  document.getElementById("btnLimpiarFiltros").addEventListener("click", () => store.clearFiltros());
+  document.getElementById("filterChips").addEventListener("click", e => {
+    const chip = e.target.closest("[data-filter-key]");
+    if (!chip) return;
+    const key = chip.dataset.filterKey;
+    if (key === "soloDuplicados" || key === "soloRevision") store.setFiltro(key, false);
+    else store.setFiltro(key, key === "semestre" ? "todos" : "");
   });
+  store.subscribe(renderFilters);
+  renderFilters(store);
+}
 
-  document.getElementById("btnLimpiarFiltros").addEventListener("click", () => {
-    store.clearFiltros();
-    sincronizarControles(store);
-  });
+function fillSelect(id, values, allLabel) {
+  const el = document.getElementById(id);
+  const previous = el.value;
+  el.innerHTML = `<option value="">${allLabel}</option>${values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("")}`;
+  el.value = previous;
+}
 
-  const debounced = debounce(() => store.setFiltro("busqueda", document.getElementById("searchInput").value), 200);
-  document.getElementById("searchInput").addEventListener("input", debounced);
+function renderOptions(s) {
+  if (optionsVersion === s.dataVersion) return;
+  optionsVersion = s.dataVersion;
+  fillSelect("filtroBase", s.options("base"), "Todas las bases");
+  fillSelect("filtroCurso", s.options("curso"), "Todos los cursos");
+  fillSelect("filtroGrupo", s.options("grupo"), "Todos los grupos");
+  fillSelect("filtroInstructor", s.options("instructor"), "Todos los instructores");
+  fillSelect("filtroSalon", s.options("salon"), "Todos los salones");
+}
 
-  Object.keys(CLAVES_NORMALIZADA).forEach(id => {
+function syncControls(s) {
+  const ids = { searchInput: "busqueda", filtroBase: "base", filtroCurso: "curso", filtroGrupo: "grupo", filtroInstructor: "instructor", filtroSalon: "salon", filtroAsistio: "asistio", filtroFechaDesde: "desde", filtroFechaHasta: "hasta", filtroSemestre: "semestre", filtroEstado: "estado" };
+  Object.entries(ids).forEach(([id, key]) => {
     const el = document.getElementById(id);
-    if (!el || id === "searchInput") return;
-    el.addEventListener("change", () => store.setFiltro(CLAVES_NORMALIZADA[id], el.value));
+    if (el && document.activeElement !== el) el.value = s.filtros[key] ?? "";
   });
-
-  // Select combinado: "Solo duplicados" / "Solo pendientes de revisión".
-  const selIntegridad = document.getElementById("filtroIntegridad");
-  if (selIntegridad) {
-    selIntegridad.addEventListener("change", () => {
-      store.filtros.soloDuplicados = selIntegridad.value === "duplicados";
-      store.filtros.soloRevision = selIntegridad.value === "revision";
-      store.applyFilters();
-    });
-  }
-
-  invFiltros = store.subscribe(renderUI);
-  renderUI(store);
+  document.getElementById("filtroIntegridad").value = s.filtros.soloDuplicados ? "duplicados" : s.filtros.soloRevision ? "revision" : "";
 }
 
-function renderUI(s) {
-  poblarSelects(s.data);
-  renderChips(s.filtrosActivos());
-  renderSummary(s.filtered);
-  sincronizarControles(s);
+function renderFilters(s) {
+  renderOptions(s);
+  syncControls(s);
+  const chips = s.filtrosActivos();
+  document.getElementById("filterChips").innerHTML = chips.map(x => `<button class="filter-chip" data-filter-key="${x.clave}">${escapeHtml(x.etiqueta)}${x.valor ? `: ${escapeHtml(x.valor)}` : ""} <i class="fa-solid fa-xmark"></i></button>`).join(" ");
+  const m = s.metrics.summary;
+  document.getElementById("filterSummary").innerHTML = `<strong>${m.registros}</strong> registros · <strong>${m.personasUnicas}</strong> personas · <strong>${m.pctAsistencia}%</strong> asistencia${s.filtered.length !== s.data.length ? ` · de ${s.data.length} totales` : ""}`;
 }
-
-function poblarSelects(data) {
-  SELECTS.forEach(({ id, campo }) => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const actual = store.filtros[CLAVES_NORMALIZADA[id]] || "";
-    const valores = uniqueSorted(data.map(d => d[campo]));
-    sel.innerHTML = `<option value="">${labelTodos(id)}</option>` +
-      valores.map(v => `<option value="${escapeAttr(v)}">${escapePlain(v)}</option>`).join("");
-    sel.value = valores.includes(actual) ? actual : "";
-  });
-}
-
-function labelTodos(id) {
-  const mapa = { filtroBase: "Todas", filtroGrupo: "Todos", filtroCurso: "Todos", filtroSalon: "Todos", filtroInstructor: "Todos" };
-  return mapa[id] || "Todos";
-}
-
-function renderChips(activos) {
-  const cont = document.getElementById("filterChips");
-  if (!cont) return;
-  if (activos.length === 0) { cont.innerHTML = ""; return; }
-  cont.innerHTML = activos.map(f => {
-    const texto = f.valor ? `${f.etiqueta}: ${f.valor}` : f.etiqueta;
-    return `<button class="filter-chip" data-clave="${f.clave}" title="Quitar filtro: ${escapePlain(texto)}">
-       ${escapePlain(texto)}
-       <span class="fc-remove"><i class="fa-solid fa-xmark"></i></span>
-     </button>`;
-  }).join("");
-  cont.querySelectorAll(".filter-chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      const clave = chip.dataset.clave;
-      if (clave === "soloDuplicados" || clave === "soloRevision") {
-        store.setFiltro(clave, false);
-      } else {
-        store.setFiltro(clave, clave === "semestre" ? "todos" : "");
-      }
-      // Forzamos la limpieza visual del control aunque el foco esté en otro sitio.
-      const id = Object.keys(CLAVES_NORMALIZADA).find(k => CLAVES_NORMALIZADA[k] === clave);
-      const el = id ? document.getElementById(id) : null;
-      if (el) el.value = clave === "semestre" ? "todos" : "";
-      sincronizarControles(store);
-    });
-  });
-}
-
-function renderSummary(dataFiltrada) {
-  const cont = document.getElementById("filterSummary");
-  if (!cont) return;
-  const s = resumen(dataFiltrada);
-  const total = store.data.length;
-  const filtrado = total > 0 && s.registros !== total;
-  cont.innerHTML =
-    `<strong>${s.registros}</strong> registro(s) · <strong>${s.personasUnicas}</strong> persona(s) única(s) · ` +
-    `<strong>${s.grupos}</strong> grupo(s) · <strong>${s.cursos}</strong> curso(s) · ` +
-    `<strong>${s.pctAsistencia}%</strong> asistencia` +
-    (filtrado ? ` <span class="filter-summary-badge">de ${total} en total</span>` : "");
-}
-
-function sincronizarControles(s) {
-  const f = s.filtros;
-  Object.entries(CLAVES_NORMALIZADA).forEach(([id, clave]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (el.type === "date") { el.value = f[clave] ?? ""; return; }
-    if (document.activeElement === el) return; // no interrumpir tipeo/select en uso
-    if (id === "searchInput") { el.value = f.busqueda; return; }
-    el.value = f[clave] ?? (clave === "semestre" ? "todos" : "");
-  });
-  // Select de integridad (combina soloDuplicados / soloRevision).
-  const selInt = document.getElementById("filtroIntegridad");
-  if (selInt) {
-    selInt.value = f.soloDuplicados ? "duplicados" : (f.soloRevision ? "revision" : "");
-  }
-}
-
-function escapeAttr(str) {
-  return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-function escapePlain(str) { return escapeAttr(str); }

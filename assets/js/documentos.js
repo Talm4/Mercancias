@@ -13,9 +13,8 @@ import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 import {
-  collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDocs, orderBy
+  collection, query, where, onSnapshot, addDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { showToast } from "./utils.js";
 
 const storage = getStorage(app);
 const docsColRef = collection(db, "documentos");
