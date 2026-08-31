@@ -6,13 +6,13 @@ import { renderDashboard } from "./dashboard.js";
 import { renderColaboradores } from "./colaboradores.js";
 import { renderCursos, abrirCurso, cerrarEntityDrawer } from "./cursos.js";
 import { renderGrupos, abrirGrupo } from "./grupos.js";
-import { initAnalitica, renderAnalitica } from "./analitica.js";
 import { initPerfil, abrirPerfil, renderPerfil } from "./perfil.js";
+import { initCertificados } from "./certificados.js";
 import { renderEstado } from "./ui.js";
 import { showToast } from "./utils.js";
 
-const titles = { resumen: "Resumen ejecutivo", registros: "Registro maestro", personas: "Personas", cursos: "Cursos", grupos: "Grupos", analitica: "Analítica comparativa" };
-const renderers = { resumen: renderDashboard, registros: renderRegistros, personas: renderColaboradores, cursos: renderCursos, grupos: renderGrupos, analitica: renderAnalitica };
+const titles = { resumen: "Resumen ejecutivo", registros: "Registro maestro", personas: "Personas", cursos: "Cursos", grupos: "Grupos" };
+const renderers = { resumen: renderDashboard, registros: renderRegistros, personas: renderColaboradores, cursos: renderCursos, grupos: renderGrupos };
 
 function renderCurrent() {
   const name = route();
@@ -55,7 +55,7 @@ document.getElementById("themeToggleBtn").addEventListener("click", () => setTim
 initFiltros();
 initAsistencias();
 initPerfil();
-initAnalitica(renderCurrent);
+initCertificados();
 initRouter(() => renderCurrent());
 store.subscribe(() => { renderChrome(); renderCurrent(); });
 store.iniciar();

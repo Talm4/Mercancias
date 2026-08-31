@@ -23,7 +23,7 @@ export function agregarPorPersona(data) {
     const m = metrics(registros).summary;
     const sorted = registros.slice().sort((a, b) => (b.FECHA || "").localeCompare(a.FECHA || ""));
     const latest = sorted[0] || {};
-    return { key, ID: latest.ID || key, NOMBRES: latest.NOMBRES || "(Sin nombre)", CARGO: latest.CARGO || "", BASE: latest.BASE || "", CORREO: latest.CORREO || "", EMPRESA: latest.EMPRESA || "", totalCursos: m.cursos, asistencias: m.asistieron, inasistencias: m.noAsistieron, promedioNota: m.promedioNota, ultimoCurso: latest.CURSO || "", ultimaFecha: latest.FECHA || "", registros };
+    return { key, ID: latest.ID || key, NOMBRES: latest.NOMBRES || "(Sin nombre)", CARGO: latest.CARGO || "", BASE: latest.BASE || "", CORREO: latest.CORREO || "", totalCursos: m.cursos, asistencias: m.asistieron, inasistencias: m.noAsistieron, promedioNota: m.promedioNota, ultimoCurso: latest.CURSO || "", ultimaFecha: latest.FECHA || "", registros };
   }).sort((a, b) => a.NOMBRES.localeCompare(b.NOMBRES, "es"));
 }
 
@@ -38,4 +38,3 @@ export function agregarPorGrupo(data) {
   data.forEach(rec => { const key = rec.GRUPO || "(Sin grupo)"; if (!map.has(key)) map.set(key, []); map.get(key).push(rec); });
   return [...map.entries()].map(([grupo, registros]) => { const sorted = registros.slice().sort((a, b) => (b.FECHA || "").localeCompare(a.FECHA || "")); const latest = sorted[0] || {}; return { grupo, curso: latest.CURSO || "", programa: latest.PROGRAMA || "", fecha: latest.FECHA || "", base: latest.BASE || "", instructor: latest.INSTRUCTOR || "", salon: latest.SALON || "", resumen: metrics(registros).summary, registros }; }).sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
 }
-

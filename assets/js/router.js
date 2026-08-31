@@ -1,4 +1,4 @@
-const allowed = new Set(["resumen", "registros", "personas", "cursos", "grupos", "analitica"]);
+const allowed = new Set(["resumen", "registros", "personas", "cursos", "grupos"]);
 const aliases = { inicio: "resumen", asistencias: "registros", colaboradores: "personas" };
 let current = "resumen";
 
@@ -16,4 +16,3 @@ export function initRouter(onChange) {
   window.addEventListener("hashchange", handle);
   handle();
 }
-

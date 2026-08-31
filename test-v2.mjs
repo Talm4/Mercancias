@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import { aggregateRecords, buildDataModel, buildInsights, filterRecords } from "./assets/js/data-engine.js";
+import { certificateTexts, dateWords } from "./assets/js/certificados-core.js";
 
 const bases = ["BOG", "MDE", "CTG", "CLO", "BAQ"];
 const courses = ["Básico Inicial", "Básico Recurrente", "Refuerzo", "Especializado"];
@@ -44,10 +45,22 @@ assert.equal(metrics.summary.registros, filtered.length);
 assert.equal(metrics.by.base.length, 1);
 assert.ok(buildInsights(metrics).length > 0);
 
+const certificate = certificateTexts({
+  NOMBRES: "Alexander Escobar Pajaro", ID: "1047446658", CURSO: "Básico Inicial",
+  FECHA: "2026-07-24", INTENSIDAD: "8 horas", NOTA: "100", BASE: "ADZ",
+  INSTRUCTOR: "Adriana Vanegas",
+}, {
+  CERT_CATEGORIA: "Cat. 8", CERT_METODOLOGIA: "PRESENCIAL", CERT_CIUDAD: "ADZ",
+  CERT_TRATAMIENTO_INSTRUCTOR: "la Instructora", CERT_LICENCIA_INSTRUCTOR: "31172210",
+});
+assert.equal(dateWords("2026-07-24"), "24 de JULIO de 2026");
+assert.match(certificate.body, /ALEXANDER ESCOBAR PAJARO/);
+assert.match(certificate.body, /BÁSICO INICIAL DE MERCANCÍAS PELIGROSAS - CAT\. 8/);
+assert.match(certificate.instructorText, /ADRIANA VANEGAS habilitada con licencia IET No\. 31172210/);
+
 // Umbrales deliberadamente holgados: detectan regresiones algorítmicas
 // (por ejemplo O(n²)) sin depender de una máquina concreta.
 assert.ok(buildMs < 4000, `Indexación demasiado lenta: ${buildMs.toFixed(1)} ms`);
 assert.ok(filterMs < 1000, `Filtro demasiado lento: ${filterMs.toFixed(1)} ms`);
 assert.ok(aggregateMs < 1000, `Agregación demasiado lenta: ${aggregateMs.toFixed(1)} ms`);
 console.log(JSON.stringify({ records: records.length, filtered: filtered.length, buildMs: +buildMs.toFixed(1), filterMs: +filterMs.toFixed(1), aggregateMs: +aggregateMs.toFixed(1) }));
-

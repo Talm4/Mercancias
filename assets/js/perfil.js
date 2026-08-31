@@ -91,7 +91,6 @@ export function renderPerfil(s) {
           ${infoItem("Cargo", persona.CARGO)}
           ${infoItem("Correo", persona.CORREO)}
           ${infoItem("Base", persona.BASE)}
-          ${infoItem("Empresa", persona.EMPRESA)}
         </div>
       </div>
 
@@ -100,7 +99,7 @@ export function renderPerfil(s) {
         <div class="table-responsive" style="max-height:none;">
           <table class="mini-table">
             <thead><tr>
-              <th>Curso</th><th>Fecha</th><th>Vencimiento</th><th>Estado</th><th>Grupo</th><th>Instructor</th><th>Asistencia</th>
+              <th>Curso</th><th>Fecha</th><th>Vencimiento</th><th>Estado</th><th>Grupo</th><th>Instructor</th><th>Asistencia</th><th>Certificado</th>
             </tr></thead>
             <tbody>
               ${persona.registros.slice().sort((a, b) => (b.FECHA || "").localeCompare(a.FECHA || "")).map(r => {
@@ -114,6 +113,7 @@ export function renderPerfil(s) {
                   <td>${escapeHtml(r.GRUPO || "—")}</td>
                   <td>${escapeHtml(r.INSTRUCTOR || "—")}</td>
                   <td>${asistenciaPill(r)}</td>
+                  <td><button class="command-button secondary certificate-button" type="button" onclick="abrirCertificado('${escapeHtml(r._docId)}')"><i class="fa-solid fa-certificate"></i>Configurar</button></td>
                 </tr>`;
               }).join("")}
             </tbody>

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="assets/css/overrides.css">
   <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -26,7 +27,6 @@
         <a href="#personas" data-nav="personas"><i class="fa-solid fa-user-group"></i><span>Personas</span></a>
         <a href="#cursos" data-nav="cursos"><i class="fa-solid fa-book-open"></i><span>Cursos</span></a>
         <a href="#grupos" data-nav="grupos"><i class="fa-solid fa-people-group"></i><span>Grupos</span></a>
-        <a href="#analitica" data-nav="analitica"><i class="fa-solid fa-chart-line"></i><span>Analítica</span></a>
       </nav>
       <div class="rail-footer">
         <div class="connection-mini" id="connectionBadge"><span class="status-dot status-loading"></span> Sincronizando</div>
@@ -55,9 +55,8 @@
         <section id="view-resumen" class="tdc-view" aria-labelledby="pageTitle">
           <div class="executive-hero">
             <div>
-              <span class="hero-kicker">Panorama operacional</span>
-              <h2>Decisiones de capacitación, sin esperar al informe.</h2>
-              <p id="dashHeroSub">Consolidando asistencia, vigencias y calidad de datos.</p>
+              <h2>Radicación de Mercancías Peligrosas</h2>
+              <p id="dashHeroSub">0 registros</p>
             </div>
             <div class="hero-health" id="dashCalidad"></div>
           </div>
@@ -72,7 +71,7 @@
               <div id="dashInsights" class="insight-list"></div>
             </article>
             <article class="surface span-5">
-              <div class="surface-head"><div><span class="section-kicker">Comparación</span><h3>Desempeño por base</h3></div><button class="link-button" onclick="location.hash='#analitica'">Explorar</button></div>
+              <div class="surface-head"><div><span class="section-kicker">Comparación</span><h3>Desempeño por base</h3></div></div>
               <div id="dashBaseRanking" class="ranking-list"></div>
             </article>
             <article class="surface span-4">
@@ -129,18 +128,6 @@
           <div id="groupCards" class="entity-grid"></div>
         </section>
 
-        <section id="view-analitica" class="tdc-view">
-          <div class="view-toolbar"><div><span class="section-kicker">Modelo analítico</span><h2>Analítica comparativa</h2><p>Los gráficos consumen agregados precalculados y se cargan al entrar.</p></div><div class="compare-control"><label for="analysisDimension">Comparar por</label><select id="analysisDimension" class="form-select"><option value="curso">Curso</option><option value="base">Base</option><option value="instructor">Instructor</option><option value="grupo">Grupo</option></select></div></div>
-          <div id="analysisKpis" class="metric-grid compact"></div>
-          <div class="analytics-grid">
-            <article class="surface span-8"><div class="surface-head"><div><span class="section-kicker">Evolución</span><h3>Tendencia de asistencia</h3></div></div><div class="chart-frame"><canvas id="analysisTrend"></canvas></div></article>
-            <article class="surface span-4"><div class="surface-head"><div><span class="section-kicker">Distribución</span><h3>Asistencia global</h3></div></div><div class="chart-frame"><canvas id="analysisAttendance"></canvas></div></article>
-            <article class="surface span-7"><div class="surface-head"><div><span class="section-kicker">Ranking</span><h3 id="analysisCompareTitle">Comparación por curso</h3></div></div><div class="chart-frame chart-tall"><canvas id="analysisComparison"></canvas></div></article>
-            <article class="surface span-5"><div class="surface-head"><div><span class="section-kicker">Matriz</span><h3>Volumen vs asistencia</h3></div></div><div id="analysisMatrix" class="matrix-list"></div></article>
-            <article class="surface span-6"><div class="surface-head"><div><span class="section-kicker">Formación</span><h3>Horas por periodo</h3></div></div><div class="chart-frame"><canvas id="analysisHours"></canvas></div></article>
-            <article class="surface span-6"><div class="surface-head"><div><span class="section-kicker">Resultados</span><h3>Distribución de notas</h3></div></div><div class="chart-frame"><canvas id="analysisGrades"></canvas></div></article>
-          </div>
-        </section>
       </div>
     </main>
   </div>
@@ -166,8 +153,17 @@
     <label><input type="checkbox" class="bulk-field-toggle" data-campo="INSTRUCTOR" data-target="bulk_INSTRUCTOR" onchange="toggleBulkField(this)"> Instructor<input id="bulk_INSTRUCTOR" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="FECHA" data-target="bulk_FECHA" onchange="toggleBulkField(this)"> Fecha<input type="date" id="bulk_FECHA" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="HORA" data-target="bulk_HORA" onchange="toggleBulkField(this)"> Hora<input id="bulk_HORA" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="SALON" data-target="bulk_SALON" onchange="toggleBulkField(this)"> Salón<input id="bulk_SALON" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="GRUPO" data-target="bulk_GRUPO" onchange="toggleBulkField(this)"> Grupo<input id="bulk_GRUPO" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="BASE" data-target="bulk_BASE" onchange="toggleBulkField(this)"> Base<input id="bulk_BASE" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="CURSO" data-target="bulk_CURSO" onchange="toggleBulkField(this)"> Curso<input id="bulk_CURSO" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="PROGRAMA" data-target="bulk_PROGRAMA" onchange="toggleBulkField(this)"> Programa<input id="bulk_PROGRAMA" class="form-control" disabled></label><label><input type="checkbox" class="bulk-field-toggle" data-campo="ASISTIO" data-target="bulk_ASISTIO" onchange="toggleBulkField(this)"> Asistió<select id="bulk_ASISTIO" class="form-select" disabled><option>SÍ</option><option>NO</option></select></label>
   </div></form></div><div class="modal-footer"><button class="command-button secondary" data-bs-dismiss="modal">Cancelar</button><button class="command-button primary" onclick="aplicarEdicionMasiva()">Aplicar cambios</button></div></div></div></div>
 
+  <div class="modal fade" id="modalCertificado" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><span class="section-kicker">Certificado personalizado</span><h5 id="certModalTitle">Datos del certificado</h5></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="certRecordId"><div class="certificate-editor"><div class="certificate-fields">
+    <label>Número de certificado<input id="certNumero" class="form-control" placeholder="CI-15161"></label>
+    <label>Categoría<input id="certCategoria" class="form-control" placeholder="Cat. 8"></label>
+    <label>Metodología<select id="certMetodologia" class="form-select"><option>PRESENCIAL</option><option>VIRTUAL</option><option>HÍBRIDA</option></select></label>
+    <label>Ciudad<input id="certCiudad" class="form-control" placeholder="ADZ"></label>
+    <label>Tratamiento del instructor<select id="certTratamiento" class="form-select"><option value="la Instructora">la Instructora</option><option value="el Instructor">el Instructor</option><option value="la persona instructora">la persona instructora</option></select></label>
+    <label>Licencia IET<input id="certLicencia" class="form-control" placeholder="31172210"></label>
+  </div><div class="certificate-preview"><span class="section-kicker">Vista previa del contenido</span><h4>CERTIFICA</h4><p id="certPreviewBody"></p><p id="certPreviewInstructor"></p><p id="certPreviewValidity"></p><small>La plantilla institucional, firmas y logotipos se conservan en el PDF final.</small></div></div></div><div class="modal-footer certificate-actions"><span id="certStatus" class="me-auto small text-muted"></span><button class="command-button secondary" data-bs-dismiss="modal">Cerrar</button><button class="command-button secondary" onclick="guardarDatosCertificado()"><i class="fa-solid fa-floppy-disk"></i>Guardar datos</button><button class="command-button secondary" onclick="descargarCertificadoPDF()"><i class="fa-solid fa-download"></i>Descargar PDF</button><button class="command-button primary" onclick="guardarCertificadoFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i>Guardar PDF en Firebase</button></div></div></div></div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/theme.js"></script>
-  <script type="module" src="assets/js/app.js?v=2"></script>
+  <script type="module" src="assets/js/app.js?v=3"></script>
 </body>
 </html>

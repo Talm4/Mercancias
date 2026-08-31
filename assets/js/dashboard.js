@@ -12,10 +12,8 @@ function idle(task) {
 
 function renderHero(s) {
   const m = s.metrics;
-  const active = s.filtrosActivos().length;
-  document.getElementById("dashHeroSub").textContent = active
-    ? `${m.summary.registros} registros en el universo seleccionado · ${active} filtros activos.`
-    : `Vista consolidada de ${m.summary.personasUnicas} personas en ${m.summary.bases} bases.`;
+  const count = m.summary.registros;
+  document.getElementById("dashHeroSub").textContent = `${count} ${count === 1 ? "registro" : "registros"}`;
   document.getElementById("dashCalidad").innerHTML = `<div class="health-score">${m.quality.score}%</div><div class="health-label">índice de confianza de datos</div>`;
 }
 

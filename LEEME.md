@@ -21,7 +21,17 @@ Luego abre `http://localhost:8080/index.html`.
 - **Personas:** personas únicas y perfil lateral con historial, vigencias y documentos.
 - **Cursos:** portafolio y perfil lateral consolidado.
 - **Grupos:** cohortes y perfil lateral de participantes.
-- **Analítica:** tendencia y comparaciones por curso, base, instructor o grupo.
+
+## Certificados personalizados
+
+En el perfil de cada persona, cada fila del historial incluye la acción **Configurar**. Desde allí puedes:
+
+- personalizar número, categoría, metodología, ciudad, tratamiento y licencia del instructor;
+- guardar esos campos en el mismo registro de `capacitaciones` en Firestore;
+- descargar el certificado PDF con los datos reales del colaborador;
+- guardar el PDF en Firebase Storage y verlo después en Documentos.
+
+La plantilla institucional está en `assets/pdf/PLANTILLA-CERTIFICADO.pdf`. Ese archivo sí puede vivir en GitHub porque es estático. Los datos personalizados y los certificados generados se guardan en Firebase, no en GitHub.
 
 ## Arquitectura
 
@@ -43,4 +53,3 @@ Los detalles técnicos y los problemas corregidos están en `CAMBIOS-V2.md`.
 node test-logica.mjs
 node test-v2.mjs
 ```
-

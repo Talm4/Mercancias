@@ -267,6 +267,6 @@ export function buildInsights(metrics) {
   if (worstCourse && worstCourse.pctAsistencia < 85) insights.push({ tone: "warning", title: `Riesgo en ${worstCourse.key}`, detail: `${worstCourse.noAsistieron} inasistencias en ${worstCourse.total} registros.` });
   if (bestInstructor) insights.push({ tone: "positive", title: `Mejor consistencia: ${bestInstructor.key}`, detail: `${bestInstructor.pctAsistencia}% de asistencia en ${bestInstructor.total} registros.` });
   if (quality.review || quality.duplicates) insights.push({ tone: "neutral", title: "La calidad limita la lectura", detail: `${quality.review} registros para revisión y ${quality.duplicates} posibles duplicados.` });
-  if (!insights.length) insights.push({ tone: "positive", title: "Operación estable", detail: "No se detectaron desviaciones relevantes en el universo seleccionado." });
+  if (!insights.length) insights.push({ tone: "positive", title: "Operación estable", detail: "No se detectaron desviaciones relevantes en los registros actuales." });
   return insights.slice(0, 5);
 }
