@@ -7,7 +7,7 @@
 // defecto es 24 meses. Para agregar un curso con otra vigencia basta
 // añadir una entrada en VIGENCIA_CURSOS.
 // ==========================================================================
-import { safeStr, normKey, parseFechaFlexible } from "./utils.js?v=2.2.0";
+import { safeStr, normKey, parseFechaFlexible } from "./utils.js";
 
 /* ============================ Vigencia configurable ============================ */
 // Meses de vigencia por curso. El valor por defecto (24) aplica a cualquier

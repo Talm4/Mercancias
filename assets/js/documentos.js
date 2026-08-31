@@ -8,14 +8,14 @@
 // Si el proyecto aún no tiene Storage habilitado o las reglas lo bloquean,
 // el error se muestra explícitamente (nada se simula como exitoso).
 // ==========================================================================
-import { app, db } from "./firebase-config.js?v=2.2.0";
+import { app, db } from "./firebase-config.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 import {
   collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDocs, orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { showToast } from "./utils.js?v=2.2.0";
+import { showToast } from "./utils.js";
 
 const storage = getStorage(app);
 const docsColRef = collection(db, "documentos");

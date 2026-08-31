@@ -1,5 +1,5 @@
-import { parseNotaNumero, parseHorasNumero, getPeriodoLabel } from './utils.js?v=2.2.0';
-import { personKey, asisteSi } from './agregados.js?v=2.2.0';
+import { parseNotaNumero, parseHorasNumero, getPeriodoLabel } from './utils.js';
+import { personKey, asisteSi } from './agregados.js';
 
 const cache = new Map();
 const MAX_CACHE = 24;

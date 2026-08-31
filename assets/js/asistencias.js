@@ -3,17 +3,17 @@
 // Conserva toda la lógica original: crear, editar, eliminar, selección
 // múltiple, edición masiva, exportación y carga masiva con validación.
 // ==========================================================================
-import { db, colRef, CAMPOS } from "./firebase-config.js?v=2.2.0";
+import { db, colRef, CAMPOS } from "./firebase-config.js";
 import { doc, setDoc, addDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
   showToast, validarRegistro, mapearEncabezados, normalizarFilaExcel,
   formatFechaDisplay, formatHoraDisplay, parseFechaFlexible, asisteRegistro,
-} from "./utils.js?v=2.2.0";
-import { store } from "./store.js?v=2.2.0";
-import { escapeHtml } from "./ui.js?v=2.2.0";
+} from "./utils.js";
+import { store } from "./store.js";
+import { escapeHtml } from "./ui.js";
 import {
   normalizarCedula, clasificarRegistro, conTrazas, clavePersonaCurso, claveExactaPersonaCursoFecha,
-} from "./capacitacion.js?v=2.2.0";
+} from "./capacitacion.js";
 
 let selectedIds = new Set();
 let pendingImport = { filas: [], resumen: null };

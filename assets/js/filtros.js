@@ -3,9 +3,9 @@
 // Cada vista muestra solo filtros útiles para su objetivo. Los filtros ocultos
 // se limpian al cambiar de sección para evitar resultados afectados “por detrás”.
 // ============================================================================
-import { store } from "./store.js?v=2.2.0";
-import { uniqueSorted, debounce } from "./utils.js?v=2.2.0";
-import { resumen } from "./agregados.js?v=2.2.0";
+import { store } from "./store.js";
+import { uniqueSorted, debounce } from "./utils.js";
+import { resumen } from "./agregados.js";
 
 let currentContext = "inicio";
 let unsub = null;

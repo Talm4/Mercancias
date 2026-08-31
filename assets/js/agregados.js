@@ -5,7 +5,7 @@
 // garantizar que un "recuento de registros" nunca se confunda con un
 // "recuento de personas únicas".
 // ==========================================================================
-import { safeStr, parseNotaNumero, normKey, asisteRegistro } from "./utils.js?v=2.2.0";
+import { safeStr, parseNotaNumero, normKey, asisteRegistro } from "./utils.js";
 
 // Clave de identidad de una persona: el ID (cédula). Si el registro no
 // trae ID, se usa el nombre normalizado como respaldo para no contar el

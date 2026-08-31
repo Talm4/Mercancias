@@ -31,28 +31,11 @@ body{background:var(--v2-bg)!important;color:var(--v2-text)!important;font-famil
 @media(max-width:991px){.brand-logo-block{justify-content:center;padding-left:6px!important;padding-right:6px!important}.talma-logo{width:54px;object-fit:cover;object-position:left}}
 @media(max-width:720px){.talma-logo{width:92px;object-fit:contain}.brand-logo-block{min-height:auto;padding:4px 6px!important}}
 
-
-/* V2.2 — carga automática y logo contenido */
-.brand-logo-block{
-  width:100%; min-width:0; height:88px; min-height:88px;
-  overflow:hidden; box-sizing:border-box; padding:14px 14px 18px!important;
-  display:flex; align-items:center; justify-content:flex-start;
-}
-.talma-logo{
-  display:block!important; width:auto!important; height:auto!important;
-  max-width:170px!important; max-height:52px!important;
-  object-fit:contain!important; object-position:left center!important;
-  flex:0 0 auto;
-}
-.data-refresh-btn{white-space:nowrap;min-width:104px}
-.dashboard-loading{font-size:11px;color:var(--v2-muted)}
-.dashboard-load-error{font-size:11px;color:#a33a2b}
-@media(max-width:850px){
-  .brand-logo-block{height:70px;min-height:70px;padding:10px 8px!important;justify-content:center}
-  .talma-logo{max-width:54px!important;max-height:38px!important;object-fit:contain!important}
-}
-@media(max-width:560px){
-  .brand-logo-block{width:100px;height:42px;min-height:42px;padding:4px 6px!important;justify-content:flex-start}
-  .talma-logo{max-width:92px!important;max-height:32px!important}
-  .data-refresh-btn{min-width:auto}.data-refresh-btn{font-size:0!important}.data-refresh-btn i{font-size:12px!important;margin:0!important}
-}
+/* V2.3 — restauración de sincronización + logo acotado */
+.brand-logo-block{height:72px!important;min-height:72px!important;max-height:72px!important;overflow:hidden!important;box-sizing:border-box!important;flex:0 0 72px!important;}
+.brand-logo-block .talma-logo{display:block!important;width:150px!important;max-width:100%!important;height:auto!important;max-height:48px!important;object-fit:contain!important;object-position:left center!important;transform:none!important;}
+.data-load-notice{margin:0 0 12px;padding:10px 12px;border:1px solid #e2b8b8;background:#fff5f5;color:#7d2020;border-radius:7px;font-size:12px;}
+[data-theme="dark"] .data-load-notice{background:#2b1b1b;color:#ffcaca;border-color:#634040;}
+#btnTraerDatos{white-space:nowrap;}
+@media(max-width:850px){.brand-logo-block .talma-logo{width:52px!important;max-height:42px!important;object-fit:cover!important;object-position:left center!important;}}
+@media(max-width:560px){.brand-logo-block{height:44px!important;min-height:44px!important;flex-basis:auto!important}.brand-logo-block .talma-logo{width:92px!important;max-height:34px!important;object-fit:contain!important}.topbar-actions #btnTraerDatos{padding-left:8px!important;padding-right:8px!important}.topbar-actions #btnTraerDatos{font-size:0!important}.topbar-actions #btnTraerDatos i{font-size:12px!important;margin:0!important}}

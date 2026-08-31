@@ -3,12 +3,12 @@
 // Todos los indicadores, gráficos, tablas y alertas se construyen sobre
 // store.filtered: exactamente el mismo universo que los filtros.
 // ==========================================================================
-import { store } from "./store.js?v=2.2.0";
-import { resumen, agregarPorGrupo } from "./agregados.js?v=2.2.0";
-import { getAnalytics } from "./analytics-engine.js?v=2.2.0";
-import { renderKpiStrip, escapeHtml } from "./ui.js?v=2.2.0";
-import { asisteRegistro, formatFechaDisplay } from "./utils.js?v=2.2.0";
-import { estadosPorPersona } from "./capacitacion.js?v=2.2.0";
+import { store } from "./store.js";
+import { resumen, agregarPorGrupo } from "./agregados.js";
+import { getAnalytics } from "./analytics-engine.js";
+import { renderKpiStrip, escapeHtml } from "./ui.js";
+import { asisteRegistro, formatFechaDisplay } from "./utils.js";
+import { estadosPorPersona } from "./capacitacion.js";
 
 const VERDE = "#0b7a40", ROJO = "#d92d2d", TEAL = "#1c6fa8", AMARILLO = "#b78e12";
 
@@ -42,7 +42,7 @@ function renderHero(s) {
   const updateLabel = document.getElementById("dashUpdateLabel");
   const updateValue = document.getElementById("dashUpdateValue");
   if (updateLabel) updateLabel.innerHTML =
-    s.ultimaActualizacion ? "Última actualización" : "Carga automática";
+    s.ultimaActualizacion ? "Última actualización" : "Cargando datos";
   if (updateValue) updateValue.innerText = s.ultimaActualizacion || "—";
 
   const heroSub = document.getElementById("dashHeroSub");
@@ -63,12 +63,8 @@ function renderCalidadHero(s) {
   const revision = cal.revision.length;
   const duplicados = cal.duplicados.length;
   const problemas = revision + duplicados;
-  if (s.estado === "loading" && s.data.length === 0) {
-    cont.innerHTML = `<span class="dashboard-loading"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Cargando información…</span>`;
-    return;
-  }
-  if (s.estado === "error" && s.data.length === 0) {
-    cont.innerHTML = `<span class="dashboard-load-error"><i class="fa-solid fa-triangle-exclamation me-2"></i>No se pudieron obtener los datos. <button type="button" class="link-btn" onclick="traerDatos()">Intentar de nuevo</button></span>`;
+  if (s.estado !== "online" || s.data.length === 0) {
+    cont.innerHTML = `<span class="status-dot status-loading"></span> Verificando calidad de datos...`;
     return;
   }
   if (problemas === 0) {

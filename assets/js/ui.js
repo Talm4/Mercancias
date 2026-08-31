@@ -1,7 +1,7 @@
 // ==========================================================================
 // TALMA DATA CENTER — Helpers de UI compartidos
 // ==========================================================================
-import { asisteRegistro } from "./utils.js?v=2.2.0";
+import { asisteRegistro } from "./utils.js";
 
 export function escapeHtml(str) {
   if (str === undefined || str === null) return "";

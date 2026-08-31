@@ -1,10 +1,10 @@
 // ==========================================================================
 // TALMA DATA CENTER — Vista COLABORADORES (personas únicas)
 // ==========================================================================
-import { agregarPorPersona } from "./agregados.js?v=2.2.0";
-import { escapeHtml, renderKpiStrip } from "./ui.js?v=2.2.0";
-import { estadosPorPersona, coloresEstadoCapacitacion } from "./capacitacion.js?v=2.2.0";
-import { store } from "./store.js?v=2.2.0";
+import { agregarPorPersona } from "./agregados.js";
+import { escapeHtml, renderKpiStrip } from "./ui.js";
+import { estadosPorPersona, coloresEstadoCapacitacion } from "./capacitacion.js";
+import { store } from "./store.js";
 
 function chipEstadoGlobal(estado) {
   const { etiqueta, icono } = estado;

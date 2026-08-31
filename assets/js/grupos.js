@@ -1,9 +1,9 @@
 // ==========================================================================
 // TALMA DATA CENTER — Vista GRUPOS (+ detalle)
 // ==========================================================================
-import { agregarPorGrupo } from "./agregados.js?v=2.2.0";
-import { escapeHtml, asistenciaPill, promedioFmt } from "./ui.js?v=2.2.0";
-import { formatFechaDisplay } from "./utils.js?v=2.2.0";
+import { agregarPorGrupo } from "./agregados.js";
+import { escapeHtml, asistenciaPill, promedioFmt } from "./ui.js";
+import { formatFechaDisplay } from "./utils.js";
 
 export function renderGrupos(s) {
   const grupos = agregarPorGrupo(s.filtered);
