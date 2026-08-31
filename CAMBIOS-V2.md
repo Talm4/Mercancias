@@ -41,3 +41,15 @@
 - `test-logica.mjs` ejecutado correctamente: todas las pruebas pasaron.
 - HTML revisado para evitar IDs duplicados.
 - Se conservaron los IDs y acciones requeridos por CRUD, filtros, modales, importación/exportación y perfiles.
+
+
+## Ajustes V2.1 solicitados
+- Se reemplazó el isotipo textual falso por el logo oficial de Talma cargado desde `https://www.talma.com.co/img/talma_white.png`.
+- Se eliminó completamente la sección Tendencias.
+- Se eliminó el bloque de Vigente / Recurrencia / Próximo a vencer / Vencido / Sin fecha del Resumen.
+- En Personas se eliminaron Cursos realizados y Último curso.
+- En el perfil de colaborador se eliminó Empresa, Cursos realizados y Último curso.
+- Se corrigió el filtro Asistió/No asistió con normalización tolerante (`SI`, `SÍ`, `NO`, `No asistió`, etc.).
+- Los filtros ahora cambian según la sección y los filtros ocultos dejan de afectar otras vistas.
+- Se eliminaron botones de actualización manual y textos visibles de conexión/sincronización.
+- Los datos siguen cargando automáticamente al abrir mediante la suscripción existente.

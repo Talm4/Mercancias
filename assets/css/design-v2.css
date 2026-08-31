@@ -19,3 +19,14 @@ body{background:var(--v2-bg)!important;color:var(--v2-text)!important;font-famil
 @media(max-width:1150px){.operations-grid{grid-template-columns:1fr 1fr}.quality-panel{grid-column:1/-1}.overview-grid{grid-template-columns:220px 1fr}.executive-kpis{grid-template-columns:repeat(2,1fr)!important}}
 @media(max-width:850px){:root{--side:70px}.brand-block>div:last-child,.app-nav span,.nav-group-label,.sync-mini div,.theme-btn span{display:none}.brand-block{justify-content:center;padding-left:0;padding-right:0}.app-nav a{justify-content:center;padding:0}.app-nav a i{width:auto}.executive-layout,.analysis-grid,.analytics-layout{grid-template-columns:1fr}.operations-grid{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr}.donut-zone{height:230px}.analytics-summary{grid-template-columns:repeat(2,1fr)}.analytics-summary>div:nth-child(2){border-right:0}.analytics-summary>div:nth-child(-n+2){border-bottom:1px solid var(--v2-line)}}
 @media(max-width:560px){:root{--side:0px}.app-sidebar{position:static;width:100%;height:auto;padding:9px 10px;flex-direction:row}.brand-block{border:0;padding:0}.app-nav{padding:0;margin-left:auto;flex-direction:row;flex:0}.app-nav a{width:38px;height:38px}.sidebar-bottom{display:none}.app-topbar{margin-left:0;padding:0 14px}.app-main{margin-left:0;padding:16px 12px 34px}.last-sync{display:none}.page-intro{align-items:flex-start;flex-direction:column}.executive-kpis{grid-template-columns:1fr 1fr!important}.analytics-summary{grid-template-columns:1fr}.analytics-summary>div{border-right:0;border-bottom:1px solid var(--v2-line)}.overview-grid{gap:12px}}
+
+
+/* V2.1 — Ajustes solicitados */
+.brand-logo-block{min-height:62px;display:flex;align-items:center;padding:12px 10px 16px!important}
+.talma-logo{display:block;width:124px;max-width:100%;height:auto;object-fit:contain;object-position:left center}
+.overview-grid-single{grid-template-columns:minmax(0,1fr)!important}
+.overview-grid-single .donut-zone{max-width:620px;margin:0 auto;width:100%}
+.records-commandbar{margin-bottom:14px}
+.fb-clear{min-width:110px}
+@media(max-width:991px){.brand-logo-block{justify-content:center;padding-left:6px!important;padding-right:6px!important}.talma-logo{width:54px;object-fit:cover;object-position:left}}
+@media(max-width:720px){.talma-logo{width:92px;object-fit:contain}.brand-logo-block{min-height:auto;padding:4px 6px!important}}

@@ -277,6 +277,19 @@ export function normalizarRegistroFirestore(raw, campos) {
   return out;
 }
 
+
+export function normalizarAsistencia(valor) {
+  const raw = normKey(String(valor ?? "").trim());
+  if (!raw) return "SÍ";
+  const no = new Set(["NO", "N", "0", "FALSE", "FALSO", "INASISTENTE", "NO ASISTIO", "NO ASISTIÓ", "AUSENTE"]);
+  if (no.has(raw)) return "NO";
+  return "SÍ";
+}
+
+export function asisteRegistro(rec) {
+  return normalizarAsistencia(rec?.ASISTIO) === "SÍ";
+}
+
 /* ---------------------------- Formato de tabla ---------------------------- */
 export function formatFechaDisplay(iso) {
   if (!iso) return "—";

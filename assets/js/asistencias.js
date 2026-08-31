@@ -7,7 +7,7 @@ import { db, colRef, CAMPOS } from "./firebase-config.js";
 import { doc, setDoc, addDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
   showToast, validarRegistro, mapearEncabezados, normalizarFilaExcel,
-  formatFechaDisplay, formatHoraDisplay, parseFechaFlexible,
+  formatFechaDisplay, formatHoraDisplay, parseFechaFlexible, asisteRegistro,
 } from "./utils.js";
 import { store } from "./store.js";
 import { escapeHtml } from "./ui.js";
@@ -126,7 +126,7 @@ function renderTbody(slice, estado) {
   }
 
   tbody.innerHTML = slice.map(item => {
-    const esSi = (item.ASISTIO || "SÍ").toUpperCase() !== "NO";
+    const esSi = asisteRegistro(item);
     const checked = selectedIds.has(item._docId) ? "checked" : "";
     const rowClass = selectedIds.has(item._docId) ? "row-selected" : "";
     const cells = COLUMNAS.map(c => filaCelda(item, c.key)).join("");
@@ -165,7 +165,7 @@ function filaCelda(item, key) {
     case "FECHA": return `<td class="mono">${formatFechaDisplay(item.FECHA)}</td>`;
     case "HORA": return `<td class="mono">${escapeHtml(formatHoraDisplay(item.HORA))}</td>`;
     case "ASISTIO": {
-      const esSi = (item.ASISTIO || "SÍ").toUpperCase() !== "NO";
+      const esSi = asisteRegistro(item);
       return `<td><span class="hz-pill ${esSi ? "si" : "no"}"><span class="hz-dot"></span>${esSi ? "SÍ" : "NO"}</span></td>`;
     }
     case "OBSERVACION": return `<td title="${v}">${v || "—"}</td>`;
@@ -179,7 +179,7 @@ function renderMobileCards(slice) {
   if (!cont) return;
   if (slice.length === 0) { cont.innerHTML = '<div class="text-center py-4 text-muted small">Sin resultados.</div>'; return; }
   cont.innerHTML = slice.map(item => {
-    const esSi = (item.ASISTIO || "SÍ").toUpperCase() !== "NO";
+    const esSi = asisteRegistro(item);
     const nombre = escapeHtml(item.NOMBRES || "(Sin nombre)");
     return `
     <div class="mobile-card">
