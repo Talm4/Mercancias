@@ -24,12 +24,14 @@ Luego abre `http://localhost:8080/index.html`.
 
 ## Certificados personalizados
 
-En el perfil de cada persona, cada fila del historial incluye la acción **Configurar**. Desde allí puedes:
+En el perfil de cada persona, cada fila del historial incluye **Ver** y un botón de configuración. La persona puede abrir el certificado completo dentro de la plataforma y descargarlo sin salir de su perfil. Desde la configuración puedes:
 
 - personalizar número, categoría, metodología, ciudad, tratamiento y licencia del instructor;
 - guardar esos campos en el mismo registro de `capacitaciones` en Firestore;
 - descargar el certificado PDF con los datos reales del colaborador;
 - guardar el PDF en Firebase Storage y verlo después en Documentos.
+
+El PDF reutiliza directamente las fuentes **Calibri** y **Calibri Bold** incrustadas en la plantilla, ambas a 11 puntos. Conserva las negrillas institucionales del nombre, identificación, nota, curso, metodología, fecha, intensidad, ciudad, instructor, licencia y vigencia.
 
 La plantilla institucional está en `assets/pdf/PLANTILLA-CERTIFICADO.pdf`. Ese archivo sí puede vivir en GitHub porque es estático. Los datos personalizados y los certificados generados se guardan en Firebase, no en GitHub.
 

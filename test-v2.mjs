@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import { aggregateRecords, buildDataModel, buildInsights, filterRecords } from "./assets/js/data-engine.js";
-import { certificateTexts, dateWords } from "./assets/js/certificados-core.js";
+import { certificateTextRuns, certificateTexts, dateWords } from "./assets/js/certificados-core.js";
 
 const bases = ["BOG", "MDE", "CTG", "CLO", "BAQ"];
 const courses = ["Básico Inicial", "Básico Recurrente", "Refuerzo", "Especializado"];
@@ -55,8 +55,22 @@ const certificate = certificateTexts({
 });
 assert.equal(dateWords("2026-07-24"), "24 de JULIO de 2026");
 assert.match(certificate.body, /ALEXANDER ESCOBAR PAJARO/);
-assert.match(certificate.body, /BÁSICO INICIAL DE MERCANCÍAS PELIGROSAS - CAT\. 8/);
+assert.match(certificate.body, /BÁSICO INICIAL DE MERCANCÍAS PELIGROSAS - Cat\. 8/);
 assert.match(certificate.instructorText, /ADRIANA VANEGAS habilitada con licencia IET No\. 31172210/);
+const richCertificate = certificateTextRuns({
+  NOMBRES: "Alexander Escobar Pajaro", ID: "1047446658", CURSO: "Básico Inicial",
+  FECHA: "2026-07-24", INTENSIDAD: "8 horas", NOTA: "100", BASE: "ADZ",
+  INSTRUCTOR: "Adriana Vanegas",
+}, {
+  CERT_CATEGORIA: "Cat. 8", CERT_METODOLOGIA: "PRESENCIAL", CERT_CIUDAD: "ADZ",
+  CERT_TRATAMIENTO_INSTRUCTOR: "la Instructora", CERT_LICENCIA_INSTRUCTOR: "31172210",
+});
+const boldBody = richCertificate.body.filter(run => run.bold).map(run => run.text).join("|");
+assert.match(boldBody, /ALEXANDER ESCOBAR PAJARO/);
+assert.match(boldBody, /1047446658/);
+assert.match(boldBody, /PRESENCIAL/);
+assert.match(boldBody, /24\|JULIO\|2026/);
+assert.ok(richCertificate.instructor.some(run => run.bold && run.text === "ADRIANA VANEGAS"));
 
 // Umbrales deliberadamente holgados: detectan regresiones algorítmicas
 // (por ejemplo O(n²)) sin depender de una máquina concreta.

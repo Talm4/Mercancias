@@ -3,12 +3,15 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-
 import { store } from "./store.js";
 import { showToast } from "./utils.js";
 import { subirDocumento } from "./documentos.js";
-import { certificateTexts } from "./certificados-core.js";
+import { certificateTextRuns } from "./certificados-core.js";
+import { createCertificatePdf } from "./certificado-pdf.js";
 
 const TEMPLATE_URL = "assets/pdf/PLANTILLA-CERTIFICADO.pdf";
 const CERT_FIELDS = ["certNumero", "certCategoria", "certMetodologia", "certCiudad", "certTratamiento", "certLicencia"];
 let modal;
+let viewerModal;
 let currentRecord = null;
+let viewerUrl = "";
 
 
 function defaultCertificateNumber(rec) {
@@ -29,10 +32,18 @@ function formValues() {
 
 function refreshPreview() {
   if (!currentRecord) return;
-  const texts = certificateTexts(currentRecord, formValues());
-  document.getElementById("certPreviewBody").textContent = texts.body;
-  document.getElementById("certPreviewInstructor").textContent = texts.instructorText;
-  document.getElementById("certPreviewValidity").textContent = texts.validity;
+  const runs = certificateTextRuns(currentRecord, formValues());
+  renderRuns(document.getElementById("certPreviewBody"), runs.body);
+  renderRuns(document.getElementById("certPreviewInstructor"), runs.instructor);
+  renderRuns(document.getElementById("certPreviewValidity"), runs.validity);
+}
+
+function renderRuns(element, runs) {
+  element.replaceChildren(...runs.map(run => {
+    const node = document.createElement(run.bold ? "strong" : "span");
+    node.textContent = run.text;
+    return node;
+  }));
 }
 
 function setStatus(message, tone = "") {
@@ -76,49 +87,19 @@ export async function saveCertificateConfig({ quiet = false } = {}) {
   return values;
 }
 
-function sanitizePdfText(value) {
-  return String(value || "").replace(/[–—]/g, "-").replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
-}
-
-function drawWrapped(page, text, { x, y, width, font, size, lineHeight, color }) {
-  const words = sanitizePdfText(text).split(/\s+/);
-  const lines = [];
-  let line = "";
-  words.forEach(word => {
-    const candidate = line ? `${line} ${word}` : word;
-    if (font.widthOfTextAtSize(candidate, size) <= width) line = candidate;
-    else { if (line) lines.push(line); line = word; }
-  });
-  if (line) lines.push(line);
-  lines.forEach((value, index) => page.drawText(value, { x, y: y - index * lineHeight, size, font, color }));
-  return y - lines.length * lineHeight;
-}
-
 export async function buildCertificatePdf(rec, config) {
   if (!window.PDFLib) throw new Error("La librería para generar PDF no está disponible.");
-  const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
   const template = await fetch(TEMPLATE_URL).then(response => {
     if (!response.ok) throw new Error("No se pudo cargar la plantilla del certificado.");
     return response.arrayBuffer();
   });
-  const pdfDoc = await PDFDocument.load(template);
-  const page = pdfDoc.getPages()[0];
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const black = rgb(0.04, 0.04, 0.04);
-  const white = rgb(1, 1, 1);
-  const texts = certificateTexts(rec, config);
-
-  // La plantilla original está diligenciada; estas áreas blancas convierten
-  // sus textos variables en una superficie reutilizable sin alterar logos,
-  // resolución, firma ni pie de página.
-  page.drawRectangle({ x: 30, y: 218, width: 735, height: 150, color: white });
-  page.drawRectangle({ x: 686, y: 480, width: 104, height: 30, color: white });
-  page.drawText(`N°: ${sanitizePdfText(config.CERT_NUMERO || defaultCertificateNumber(rec))}`, { x: 704, y: 487, size: 8.5, font, color: black });
-
-  drawWrapped(page, texts.body, { x: 36, y: 357, width: 720, font, size: 10.2, lineHeight: 14.2, color: black });
-  drawWrapped(page, texts.instructorText, { x: 36, y: 282, width: 720, font, size: 10.2, lineHeight: 14.2, color: black });
-  page.drawText(sanitizePdfText(texts.validity), { x: 36, y: 236, size: 10.2, font, color: black });
-  return pdfDoc.save();
+  return createCertificatePdf(
+    window.PDFLib,
+    template,
+    rec,
+    config,
+    config.CERT_NUMERO || defaultCertificateNumber(rec),
+  );
 }
 
 function fileName(rec) {
@@ -132,18 +113,57 @@ async function currentPdf() {
   return { bytes: await buildCertificatePdf(currentRecord, config), config };
 }
 
-export async function downloadCurrentCertificate() {
-  setStatus("Generando PDF...");
-  const { bytes } = await currentPdf();
-  const blob = new Blob([bytes], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
+function releaseViewerUrl() {
+  if (viewerUrl) URL.revokeObjectURL(viewerUrl);
+  viewerUrl = "";
+}
+
+export async function viewCertificate(docId) {
+  const rec = store.getRecord(docId);
+  if (!rec) throw new Error("No se encontró el registro para visualizar el certificado.");
+  const config = {
+    CERT_NUMERO: rec.CERT_NUMERO || defaultCertificateNumber(rec),
+    CERT_CATEGORIA: rec.CERT_CATEGORIA || "Cat. 8",
+    CERT_METODOLOGIA: rec.CERT_METODOLOGIA || "PRESENCIAL",
+    CERT_CIUDAD: rec.CERT_CIUDAD || rec.BASE || "",
+    CERT_TRATAMIENTO_INSTRUCTOR: rec.CERT_TRATAMIENTO_INSTRUCTOR || "la Instructora",
+    CERT_LICENCIA_INSTRUCTOR: rec.CERT_LICENCIA_INSTRUCTOR || "SIN REGISTRAR",
+  };
+  const frame = document.getElementById("certViewerFrame");
+  const loading = document.getElementById("certViewerLoading");
+  const downloadButton = document.getElementById("certViewerDownload");
+  document.getElementById("certViewerTitle").textContent = `${rec.NOMBRES || "Colaborador"} · ${rec.CURSO || "Curso"}`;
+  frame.classList.add("d-none");
+  loading.classList.remove("d-none");
+  downloadButton.disabled = true;
+  viewerModal.show();
+  releaseViewerUrl();
+  const bytes = await buildCertificatePdf(rec, config);
+  viewerUrl = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  frame.src = `${viewerUrl}#toolbar=1&navpanes=0&view=FitH`;
+  frame.onload = () => {
+    loading.classList.add("d-none");
+    frame.classList.remove("d-none");
+    downloadButton.disabled = false;
+  };
+  window.descargarCertificadoVisto = () => downloadBytes(bytes, fileName(rec));
+}
+
+function downloadBytes(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = fileName(currentRecord);
+  anchor.download = name;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function downloadCurrentCertificate() {
+  setStatus("Generando PDF...");
+  const { bytes } = await currentPdf();
+  downloadBytes(bytes, fileName(currentRecord));
   setStatus("PDF generado correctamente.", "success");
 }
 
@@ -168,12 +188,18 @@ async function safeAction(action) {
 
 export function initCertificados() {
   modal = new bootstrap.Modal(document.getElementById("modalCertificado"));
+  viewerModal = new bootstrap.Modal(document.getElementById("modalVistaCertificado"));
+  document.getElementById("modalVistaCertificado").addEventListener("hidden.bs.modal", () => {
+    document.getElementById("certViewerFrame").src = "about:blank";
+    releaseViewerUrl();
+  });
   CERT_FIELDS.forEach(id => {
     const field = document.getElementById(id);
     field.addEventListener("input", refreshPreview);
     field.addEventListener("change", refreshPreview);
   });
   window.abrirCertificado = abrirEditorCertificado;
+  window.verCertificado = docId => safeAction(() => viewCertificate(docId));
   window.guardarDatosCertificado = () => safeAction(() => saveCertificateConfig());
   window.descargarCertificadoPDF = () => safeAction(downloadCurrentCertificate);
   window.guardarCertificadoFirebase = () => safeAction(uploadCurrentCertificate);

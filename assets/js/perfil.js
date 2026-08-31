@@ -113,7 +113,10 @@ export function renderPerfil(s) {
                   <td>${escapeHtml(r.GRUPO || "—")}</td>
                   <td>${escapeHtml(r.INSTRUCTOR || "—")}</td>
                   <td>${asistenciaPill(r)}</td>
-                  <td><button class="command-button secondary certificate-button" type="button" onclick="abrirCertificado('${escapeHtml(r._docId)}')"><i class="fa-solid fa-certificate"></i>Configurar</button></td>
+                  <td><div class="certificate-row-actions">
+                    <button class="command-button primary certificate-button" type="button" onclick="verCertificado('${escapeHtml(r._docId)}')"><i class="fa-solid fa-eye"></i>Ver</button>
+                    <button class="icon-button certificate-config-button" type="button" title="Configurar certificado" aria-label="Configurar certificado" onclick="abrirCertificado('${escapeHtml(r._docId)}')"><i class="fa-solid fa-gear"></i></button>
+                  </div></td>
                 </tr>`;
               }).join("")}
             </tbody>

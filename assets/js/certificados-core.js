@@ -15,7 +15,7 @@ function certifiedCourse(rec, category) {
   let course = String(rec.CURSO || "CURSO SIN REGISTRAR").trim();
   if (!/MERCANC[IÍ]AS PELIGROSAS/i.test(course)) course += " DE MERCANCÍAS PELIGROSAS";
   const cat = String(category || "").trim();
-  return `${course}${cat ? ` - ${cat}` : ""}`.toUpperCase();
+  return `${course.toUpperCase()}${cat ? ` - ${cat}` : ""}`;
 }
 
 function enabledGenderText(treatment) {
@@ -25,16 +25,64 @@ function enabledGenderText(treatment) {
 }
 
 export function certificateTexts(rec, config) {
+  const runs = certificateTextRuns(rec, config);
+  return {
+    body: runs.body.map(run => run.text).join(""),
+    instructorText: runs.instructor.map(run => run.text).join(""),
+    validity: runs.validity.map(run => run.text).join(""),
+  };
+}
+
+function splitDate(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) {
+    return { day: "FECHA", month: "SIN REGISTRAR", year: "" };
+  }
+  const [year, month, day] = iso.split("-").map(Number);
+  return { day: String(day), month: monthName(month - 1), year: String(year) };
+}
+
+export function certificateTextRuns(rec, config) {
   const hours = parseHorasNumero(rec.INTENSIDAD);
   const duration = hours || String(rec.INTENSIDAD || "").replace(/[^\d.,]/g, "") || "0";
   const note = String(rec.NOTA || "SIN NOTA").trim();
-  const body = `Que el (la) Señor(a) ${String(rec.NOMBRES || "SIN NOMBRE").toUpperCase()} identificado con cédula de ciudadanía N° ${rec.ID || "SIN IDENTIFICACIÓN"}, participó y aprobó con una nota de ${note} el CURSO ${certifiedCourse(rec, config.CERT_CATEGORIA)}, impartido mediante metodología ${config.CERT_METODOLOGIA || "PRESENCIAL"} el día ${dateWords(rec.FECHA)}, con una intensidad de ${duration} hora(s) de acuerdo con el Programa de Entrenamiento vigente, aprobado para el centro de instrucción por la UAEAC y el Manual de directivas de Instrucción.`;
+  const date = splitDate(rec.FECHA);
+  const body = [
+    { text: "Que el (la) Señor(a) " },
+    { text: String(rec.NOMBRES || "SIN NOMBRE").toUpperCase(), bold: true },
+    { text: " identificado con cédula de ciudadanía N° " },
+    { text: String(rec.ID || "SIN IDENTIFICACIÓN"), bold: true },
+    { text: ", participó y aprobó con una nota de " },
+    { text: note, bold: true },
+    { text: " el " },
+    { text: `CURSO ${certifiedCourse(rec, config.CERT_CATEGORIA)}`, bold: true },
+    { text: ", impartido mediante metodología " },
+    { text: config.CERT_METODOLOGIA || "PRESENCIAL", bold: true },
+    { text: " el día " },
+    { text: date.day, bold: true },
+    { text: " de " },
+    { text: date.month, bold: true },
+    { text: date.year ? " de " : "" },
+    { text: date.year, bold: true },
+    { text: ", con una intensidad de " },
+    { text: String(duration), bold: true },
+    { text: " hora(s) de acuerdo con el Programa de Entrenamiento vigente, aprobado para el centro de instrucción por la UAEAC y el Manual de directivas de Instrucción." },
+  ];
   const treatment = config.CERT_TRATAMIENTO_INSTRUCTOR || "la Instructora";
   const license = config.CERT_LICENCIA_INSTRUCTOR || "SIN REGISTRAR";
   const instructor = String(rec.INSTRUCTOR || "SIN INSTRUCTOR").toUpperCase();
-  const instructorText = `La capacitación en mención fue impartida en la ciudad de ${config.CERT_CIUDAD || rec.BASE || "SIN REGISTRAR"} por ${treatment}, ${instructor} ${enabledGenderText(treatment)} con licencia IET No. ${license}.`;
+  const instructorRuns = [
+    { text: "La capacitación en mención fue impartida en la ciudad de " },
+    { text: config.CERT_CIUDAD || rec.BASE || "SIN REGISTRAR", bold: true },
+    { text: ` por ${treatment}, ` },
+    { text: instructor, bold: true },
+    { text: ` ${enabledGenderText(treatment)} con licencia IET No. ` },
+    { text: license, bold: true },
+    { text: "." },
+  ];
   const years = Math.max(1, Math.round(vigenciaMesesCurso(rec.CURSO) / 12));
-  const validity = `La vigencia de la capacitación es de ${years} ${years === 1 ? "año" : "años"}.`;
-  return { body, instructorText, validity };
+  const validity = [
+    { text: "La vigencia de la capacitación es de " },
+    { text: `${years} ${years === 1 ? "año" : "años"}.`, bold: true },
+  ];
+  return { body, instructor: instructorRuns, validity };
 }
-

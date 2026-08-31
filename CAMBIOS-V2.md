@@ -7,6 +7,8 @@
 - El contexto filtrado se expresa de forma natural: `17 registros`.
 - Se eliminó Empresa de la información del colaborador.
 - Cada capacitación del perfil permite configurar y generar un certificado personalizado.
+- Cada fila del historial incluye un visor PDF integrado, de modo que el colaborador puede abrir y descargar su certificado sin salir de la plataforma.
+- La generación reutiliza Calibri y Calibri Bold a 11 puntos desde la propia plantilla y conserva sus negrillas originales.
 - Los campos variables se guardan en el documento original de Firestore: `CERT_NUMERO`, `CERT_CATEGORIA`, `CERT_METODOLOGIA`, `CERT_CIUDAD`, `CERT_TRATAMIENTO_INSTRUCTOR` y `CERT_LICENCIA_INSTRUCTOR`.
 - Los PDF generados pueden descargarse o guardarse en Firebase Storage con metadatos en la colección `documentos`.
 - GitHub conserva únicamente el código y la plantilla PDF institucional.
@@ -78,7 +80,7 @@ La aplicación se reestructuró como un centro de aprendizaje empresarial inspir
 - Suite de lógica de negocio original: aprobada.
 - Suite V2 con 12.000 registros sintéticos: indexación, filtro, agregación, rankings e insights.
 - Prueba en navegador de las vistas principales, filtros, búsqueda, tabla paginada y perfiles laterales.
-- Generación del texto personalizado y revisión visual del certificado sobre la plantilla PDF institucional.
+- Generación del texto personalizado, verificación de fuentes/negrillas y revisión visual del certificado sobre la plantilla PDF institucional.
 - Conexión real de lectura a Firebase confirmada mediante el listener único.
 - Modal de alta CRUD y flujos de edición/importación verificados sin escribir datos de prueba en producción.
 - Error de configuración Chart.js detectado durante QA y corregido; validación final sin errores nuevos de consola.
